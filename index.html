@@ -56,8 +56,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 .cat-head.closed+.cat-items{max-height:0!important;overflow:hidden}
 .subcat{padding-left:4px;margin-top:2px}
 .subcat-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--d);padding:6px 12px 2px;opacity:.5}
-.ni{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--m);transition:all .12s;border-left:2px solid transparent;margin:0 2px}
-.ni-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ni{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--m);transition:all .12s;border-left:2px solid transparent;margin:0 2px;line-height:1.4}
+.ni-text{min-width:0;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere}
 .ni-date{font-size:10px;color:var(--d);font-weight:400;letter-spacing:.2px}
 .ni:hover{background:var(--h);color:var(--t);border-left-color:var(--b)}
 .ni.act{background:var(--ag);color:var(--a);font-weight:600;border-left-color:var(--a)}
@@ -492,7 +492,7 @@ function buildNav(filter=''){
         const grpOpen = tagOpenState[grpKey] === true || (currentPage && pages.some(p=>p.id===currentPage));
         html+=`<div class="tag-grp"><div class="tag-grp-head ${grpOpen?'':'closed'}" onclick="toggleTagGrp(this,'${grpKey}')"><span class="arr">▶</span> ${label} <span class="cnt">${pages.length}</span></div><div class="tag-grp-items" style="max-height:${grpOpen?'99999px':'0'}">`;
         pages.forEach(p=>{
-          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+          html+=`<div class="ni" data-id="${p.id}" title="${p.title.replace(/"/g,'&quot;')}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
         });
         html+=`</div></div>`;
       });
@@ -510,20 +510,20 @@ function buildNav(filter=''){
         const pages = visibleByTag[tag].sort((a,b)=>a.title.localeCompare(b.title));
         if(pages.length===1){
           const p=pages[0];
-          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+          html+=`<div class="ni" data-id="${p.id}" title="${p.title.replace(/"/g,'&quot;')}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
           return;
         }
         const grpKey = cat+':'+tag;
         const grpOpen = tagOpenState[grpKey] === true || (currentPage && pages.some(p=>p.id===currentPage));
         html+=`<div class="tag-grp"><div class="tag-grp-head ${grpOpen?'':'closed'}" onclick="toggleTagGrp(this,'${grpKey}')"><span class="arr">▶</span> ${tag} <span class="cnt">${pages.length}</span></div><div class="tag-grp-items" style="max-height:${grpOpen?'99999px':'0'}">`;
         pages.forEach(p=>{
-          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+          html+=`<div class="ni" data-id="${p.id}" title="${p.title.replace(/"/g,'&quot;')}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
         });
         html+=`</div></div>`;
       });
     } else {
       filtered.sort((a,b)=>a.title.localeCompare(b.title)).forEach(p=>{
-        html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+        html+=`<div class="ni" data-id="${p.id}" title="${p.title.replace(/"/g,'&quot;')}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
       });
     }
     html+=`</div></div>`;
