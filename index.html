@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LLM Wiki</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+:root{
+  --bg:#f7f6f2;--s:#ffffff;--c:#ffffff;--h:#f2efea;--b:#e5e1da;
+  --t:#1c1917;--m:#57534e;--d:#a8a29e;
+  --a:#6c5ce7;--a2:#5a4bd1;--ag:rgba(108,92,231,.05);
+  --g:#059669;--y:#d97706;--o:#ea580c;--r:#dc2626;--p:#9333ea;
+  --sw:480px;--sw-min:200px;--sw-max:480px;--rad:10px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',system-ui,sans-serif;
+  --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --shadow-sm:0 1px 2px rgba(28,25,23,.04),0 1px 3px rgba(28,25,23,.06);
+  --shadow-md:0 4px 12px rgba(28,25,23,.06),0 1px 3px rgba(28,25,23,.04);
+  --shadow-lg:0 12px 32px rgba(28,25,23,.08),0 2px 6px rgba(28,25,23,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7;display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(108,92,231,.15);color:var(--t)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--d)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ===== SIDEBAR ===== */
+.sb{width:var(--sw);min-width:var(--sw-min);max-width:var(--sw-max);background:var(--s);border-right:1px solid var(--b);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;overflow:hidden;transition:none}
+.sb-h{padding:20px 18px 16px;border-bottom:1px solid var(--b)}
+.sb-logo{font-size:15px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;letter-spacing:-.1px}
+.sb-logo .dot{width:7px;height:7px;background:var(--g);border-radius:50%;box-shadow:0 0 6px rgba(5,150,105,.3);animation:pulse 3s ease-in-out infinite}
+.sb-logo .accent{color:var(--a)}
+.sb-stats{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--d);font-weight:500}
+.sb-stats b{color:var(--m);font-weight:600}
+.sb-search{padding:10px 12px;border-bottom:1px solid var(--b)}
+.sb-search input{width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--b);border-radius:7px;color:var(--t);font-family:var(--font);font-size:13px;outline:none;transition:all .2s}
+.sb-search input:focus{border-color:var(--a);box-shadow:0 0 0 3px var(--ag);background:#fff}
+.sb-search input::placeholder{color:var(--d)}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 0}
+
+/* Resize handle */
+.sb-resize{position:absolute;top:0;right:-3px;bottom:0;width:6px;cursor:col-resize;z-index:101;background:transparent;transition:background .15s}
+.sb-resize:hover,.sb-resize.dragging{background:var(--a);opacity:.3}
+
+.cat{padding:0 8px;margin-bottom:2px}
+.cat-head{display:flex;align-items:center;gap:7px;padding:10px 12px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--m);cursor:pointer;user-select:none;border-radius:6px;transition:all .12s}
+.cat-head:hover{color:var(--m);background:var(--h)}
+.cat-head .arr{transition:transform .15s;font-size:7px;opacity:.4}
+.cat-head.closed .arr{transform:rotate(-90deg)}
+.cat-head .cnt{margin-left:auto;font-size:9px;background:var(--bg);padding:2px 7px;border-radius:10px;font-weight:600;color:var(--d)}
+.cat-items{overflow:hidden}
+.cat-head.closed+.cat-items{max-height:0!important;overflow:hidden}
+.subcat{padding-left:4px;margin-top:2px}
+.subcat-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--d);padding:6px 12px 2px;opacity:.5}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--m);transition:all .12s;border-left:2px solid transparent;margin:0 2px}
+.ni-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ni-date{font-size:10px;color:var(--d);font-weight:400;letter-spacing:.2px}
+.ni:hover{background:var(--h);color:var(--t);border-left-color:var(--b)}
+.ni.act{background:var(--ag);color:var(--a);font-weight:600;border-left-color:var(--a)}
+.ni .ic{flex-shrink:0;font-size:9px;width:14px;text-align:center;opacity:.3}
+.ni:hover .ic{opacity:.5}
+.ni.act .ic{opacity:.7;color:var(--a)}
+
+/* Tag groups (3-level hierarchy) */
+.tag-grp{margin-left:8px;margin-top:1px}
+.tag-grp-head{display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--m);cursor:pointer;user-select:none;border-radius:5px;transition:all .12s;letter-spacing:.3px}
+.tag-grp-head:hover{color:var(--m);background:var(--h)}
+.tag-grp-head .arr{transition:transform .15s;font-size:6px;opacity:.4}
+.tag-grp-head.closed .arr{transform:rotate(-90deg)}
+.tag-grp-head .cnt{margin-left:auto;font-size:8.5px;color:var(--d);opacity:.7;font-weight:500}
+.tag-grp-items{overflow:hidden;padding-left:6px}
+.tag-grp-head.closed+.tag-grp-items{max-height:0!important}
+
+/* Quick Access section (below search, compact) */
+.qa-section{padding:4px 8px;border-bottom:1px solid var(--b);flex-shrink:0;max-height:180px;overflow-y:auto}
+.qa-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--d);padding:4px 10px 2px;opacity:.6}
+.qa-item{display:flex;align-items:center;gap:8px;padding:3px 10px;border-radius:5px;cursor:pointer;font-size:12px;color:var(--m);transition:all .1s}
+.qa-item:hover{background:var(--h);color:var(--t)}
+.qa-item .qa-icon{font-size:11px;width:14px;text-align:center;opacity:.55}
+.qa-item.act{color:var(--a);background:var(--ag)}
+
+/* Filter chips */
+.filters{padding:5px 10px 6px;border-bottom:1px solid var(--b);display:flex;flex-wrap:wrap;gap:4px}
+.f-chip{padding:3px 9px;font-size:10.5px;background:var(--bg);border:1px solid var(--b);border-radius:12px;cursor:pointer;color:var(--m);transition:all .12s;user-select:none;font-weight:500}
+.f-chip:hover{border-color:var(--a);color:var(--a)}
+.f-chip.active{background:var(--a);color:#fff;border-color:var(--a)}
+.f-chip .fc-x{margin-left:3px;opacity:.7;font-size:10px}
+
+/* Sidebar credibility mini-badge */
+.cred-mini{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:auto;flex-shrink:0;letter-spacing:.3px}
+
+/* Density */
+.sb[data-density="compact"] .ni{padding:3px 10px;font-size:12px}
+.sb[data-density="compact"] .tag-grp-head{padding:3px 10px}
+.sb[data-density="compact"] .qa-item{padding:3px 10px;font-size:11.5px}
+
+/* ===== MAIN ===== */
+.mn{margin-left:var(--sw);flex:1;min-width:0;position:relative}
+.topbar{position:sticky;top:0;background:rgba(247,246,242,.9);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid rgba(229,225,218,.6);padding:11px 36px;z-index:50;display:flex;align-items:center;gap:10px}
+.bc{font-size:12.5px;color:var(--d);font-weight:500}
+.bc .sep{margin:0 6px;color:var(--b);opacity:.6}
+.bc .cur{color:var(--t);font-weight:600}
+.menu-btn{display:none;background:none;border:none;color:var(--t);font-size:18px;cursor:pointer;padding:4px}
+
+.pg-wrap{max-width:1100px;margin:0 auto;padding:40px 36px 80px}
+.pg-layout{display:grid;grid-template-columns:1fr 280px;gap:40px;align-items:start}
+.pg-layout.no-rail{grid-template-columns:1fr;max-width:780px;margin:0 auto}
+.pg-body{min-width:0;max-width:780px}
+.pg-rail{position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+@media(max-width:1024px){.pg-layout{grid-template-columns:1fr;max-width:780px;margin:0 auto}.pg-rail{position:static;max-height:none;order:-1}}
+
+/* ===== PAGE ===== */
+.pg{animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
+.pg h1{font-size:28px;font-weight:700;letter-spacing:-.3px;color:var(--t);margin-bottom:10px;line-height:1.25}
+.pg h2{font-size:16px;font-weight:700;margin-top:36px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--b);color:var(--t);position:relative}
+.pg h2::after{content:'';position:absolute;bottom:-1px;left:0;width:28px;height:2px;background:var(--a);border-radius:1px;opacity:.5}
+.pg h3{font-size:14px;font-weight:700;margin-top:24px;margin-bottom:6px;color:var(--t)}
+.pg h4{font-size:13px;font-weight:600;margin-top:20px;margin-bottom:5px;color:var(--m)}
+.pg p{margin-bottom:14px;color:var(--m);font-size:14.5px;line-height:1.8}
+.pg ul,.pg ol{margin-bottom:14px;padding-left:20px}
+.pg li{margin-bottom:5px;font-size:14.5px;color:var(--m);line-height:1.75}
+.pg li::marker{color:var(--d)}
+.pg strong{color:var(--t);font-weight:600}
+.pg code{font-family:var(--font-mono);background:rgba(108,92,231,.06);padding:2px 6px;border-radius:4px;font-size:12.5px;color:var(--a);border:1px solid rgba(108,92,231,.08)}
+.pg a,.wl{color:var(--a);text-decoration:none;cursor:pointer;border-bottom:1px solid rgba(108,92,231,.2);transition:all .15s;font-weight:500}
+.pg a:hover,.wl:hover{border-bottom-color:var(--a);color:var(--a2)}
+.wl.dead{color:var(--d);cursor:default;border-bottom:1px dashed var(--b);font-weight:400}
+.wl.dead:hover{color:var(--d);border-bottom-color:var(--b)}
+.pg table{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:18px;font-size:13.5px;border-radius:var(--rad);overflow:hidden;border:1px solid var(--b);box-shadow:var(--shadow-sm)}
+.pg th{text-align:left;padding:10px 14px;background:var(--bg);font-weight:700;font-size:10.5px;color:var(--d);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b)}
+.pg td{padding:10px 14px;border-bottom:1px solid rgba(229,225,218,.5);color:var(--m)}
+.pg tr:last-child td{border-bottom:none}
+.pg tr:hover td{background:rgba(108,92,231,.02)}
+.pg blockquote{border-left:3px solid var(--a);padding:14px 20px;margin:18px 0;background:var(--ag);border-radius:0 var(--rad) var(--rad) 0;font-style:italic;color:var(--m);font-size:14.5px;line-height:1.7}
+
+/* One-liner tagline under title */
+.one-liner{font-size:15.5px;line-height:1.55;color:var(--m);margin:4px 0 18px;font-weight:400;max-width:720px}
+
+/* TL;DR card */
+.tldr-card{margin:0 0 24px;padding:16px 20px 14px;background:linear-gradient(135deg,var(--ag),rgba(108,92,231,.02));border:1px solid rgba(108,92,231,.15);border-left:3px solid var(--a);border-radius:var(--rad)}
+.tldr-card h3{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:var(--a);margin:0 0 10px}
+.tldr-card ul{margin:0;padding-left:18px;list-style:disc}
+.tldr-card li{font-size:13.5px;line-height:1.65;color:var(--t);margin-bottom:5px}
+.tldr-card li::marker{color:var(--a)}
+
+/* Essential marker on claim bullets */
+.pg li:has(> span.essential),.pg li strong.essential,.pg li::marker{}
+
+/* Infobox card (right rail for entities) */
+.infobox{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);box-shadow:var(--shadow-sm);overflow:hidden;font-size:12.5px}
+.infobox-head{padding:10px 14px 8px;background:var(--bg);border-bottom:1px solid var(--b);font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--d)}
+.infobox-body{padding:10px 14px 14px}
+.infobox-row{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(229,225,218,.6);line-height:1.45}
+.infobox-row:last-child{border-bottom:none}
+.infobox-k{font-size:10.5px;color:var(--d);text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding-top:2px}
+.infobox-v{font-size:12.5px;color:var(--t);word-break:break-word}
+.infobox-v a{color:var(--a);text-decoration:none;border-bottom:1px solid rgba(108,92,231,.2)}
+.infobox-v ul{margin:0;padding-left:16px}
+.infobox-v li{font-size:12px;color:var(--m);line-height:1.5;margin-bottom:2px}
+
+/* TOC rail */
+.toc-rail{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:14px 14px 12px;box-shadow:var(--shadow-sm)}
+.toc-rail-head{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--d);margin-bottom:8px}
+.toc-rail ul{list-style:none;margin:0;padding:0}
+.toc-rail li{padding:3px 0;line-height:1.4}
+.toc-rail li a{display:block;font-size:12.5px;color:var(--m);text-decoration:none;padding:3px 8px 3px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;transition:all .1s}
+.toc-rail li a:hover{color:var(--a);background:var(--ag);border-left-color:rgba(108,92,231,.3)}
+.toc-rail li a.active{color:var(--a);border-left-color:var(--a);background:var(--ag);font-weight:600}
+.toc-rail li.l3 a{padding-left:22px;font-size:12px;color:var(--d)}
+
+/* Collapsible h2 sections */
+.pg details.collapsible{margin:36px 0 14px;padding:0;border:none}
+.pg details.collapsible>summary{font-size:16px;font-weight:700;margin-bottom:12px;padding:0 0 8px 22px;border-bottom:1px solid var(--b);color:var(--t);cursor:pointer;list-style:none;position:relative}
+.pg details.collapsible>summary::-webkit-details-marker{display:none}
+.pg details.collapsible>summary::before{content:'▾';position:absolute;left:0;color:var(--a);font-size:12px;transition:transform .15s;opacity:.6;top:3px}
+.pg details.collapsible:not([open])>summary::before{transform:rotate(-90deg)}
+.pg details.collapsible>summary::after{content:'';position:absolute;bottom:-1px;left:22px;width:28px;height:2px;background:var(--a);border-radius:1px;opacity:.5}
+
+/* Essential marker (star-prefixed bullets) */
+.pg li.essential{background:rgba(217,119,6,.04);border-left:2px solid var(--y);padding:6px 10px 6px 12px;margin:2px 0 6px -8px;border-radius:0 4px 4px 0}
+.pg li.essential::marker{color:var(--y)}
+
+/* Read time / staleness meta items */
+.meta-stat{display:inline-flex;align-items:center;gap:4px;color:var(--m)}
+.stale-badge{padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.stale-fresh{background:rgba(5,150,105,.08);color:var(--g)}
+.stale-warn{background:rgba(217,119,6,.1);color:var(--y)}
+.stale-old{background:rgba(220,38,38,.08);color:var(--r)}
+.status-chip{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.status-emerging{background:rgba(108,92,231,.1);color:var(--a)}
+.status-established{background:rgba(5,150,105,.08);color:var(--g)}
+.status-contested{background:rgba(217,119,6,.1);color:var(--y)}
+.status-deprecated{background:rgba(168,162,158,.15);color:var(--d)}
+
+/* Meta / Tags */
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;padding:12px 16px;background:var(--c);border:1px solid var(--b);border-radius:var(--rad);font-size:12px;color:var(--m);box-shadow:var(--shadow-sm)}
+.meta-i{display:flex;align-items:center;gap:4px;font-weight:500}
+a.meta-url{display:inline-block;padding:2px 10px;background:rgba(108,92,231,.08);border:1px solid rgba(108,92,231,.15);border-radius:5px;color:var(--a);font-size:11px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .15s;pointer-events:auto;z-index:10}
+a.meta-url:hover{background:rgba(108,92,231,.15);border-color:var(--a);text-decoration:underline}
+.badge{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.b-src{background:rgba(108,92,231,.08);color:var(--a);border:1px solid rgba(108,92,231,.1)}
+.b-ent{background:rgba(5,150,105,.06);color:var(--g);border:1px solid rgba(5,150,105,.08)}
+.b-con{background:rgba(217,119,6,.06);color:var(--y);border:1px solid rgba(217,119,6,.08)}
+.b-ans{background:rgba(234,88,12,.06);color:var(--o);border:1px solid rgba(234,88,12,.08)}
+.b-ovr{background:rgba(147,51,234,.06);color:var(--p);border:1px solid rgba(147,51,234,.08)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px}
+.tag{padding:3px 12px;background:var(--c);border:1px solid var(--b);border-radius:16px;font-size:11px;color:var(--d);font-weight:500;transition:all .15s;cursor:default}
+.tag:hover{border-color:rgba(108,92,231,.2);color:var(--a);background:var(--ag)}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
+.card{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:20px 14px;text-align:center;cursor:pointer;transition:all .25s;box-shadow:var(--shadow-sm)}
+.card:hover{border-color:rgba(108,92,231,.2);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.card .n{font-size:32px;font-weight:700;color:var(--a);letter-spacing:-.5px}
+.card .l{font-size:11px;color:var(--d);margin-top:4px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+
+/* Backlinks & Related */
+.bl-section{margin-top:40px;padding-top:24px;border-top:1px solid var(--b)}
+.bl-section h2{font-size:13px;font-weight:700;color:var(--d);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;border-bottom:none;padding-bottom:0}
+.bl-section h2::after{display:none}
+.bl-list{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.bl-item{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--c);border:1px solid var(--b);border-radius:6px;cursor:pointer;transition:all .15s;font-size:12.5px;color:var(--m)}
+.bl-item:hover{border-color:rgba(108,92,231,.3);color:var(--a);background:var(--ag)}
+.bl-item .badge{font-size:8px;padding:2px 5px}
+.rel-grid{display:flex;flex-wrap:wrap;gap:8px}
+.rel-card{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--c);border:1px solid var(--b);border-radius:8px;cursor:pointer;transition:all .15s;font-size:12.5px;color:var(--m)}
+.rel-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-1px);box-shadow:var(--shadow-sm);color:var(--a)}
+
+/* Credibility badges */
+.cred-a{background:rgba(5,150,105,.08);color:var(--g);border:1px solid rgba(5,150,105,.15)}
+.cred-b{background:rgba(108,92,231,.08);color:var(--a);border:1px solid rgba(108,92,231,.15)}
+.cred-c{background:rgba(217,119,6,.08);color:var(--y);border:1px solid rgba(217,119,6,.15)}
+.cred-d{background:rgba(220,38,38,.08);color:var(--r);border:1px solid rgba(220,38,38,.15)}
+.c-dot{font-size:9px;margin-left:2px;color:var(--y);flex-shrink:0}
+.claim-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-bottom:16px;background:var(--b)}
+.cb-high{background:var(--g)}.cb-mid{background:var(--a)}.cb-low{background:var(--y)}.cb-disp{background:var(--r)}
+
+/* Quality dot */
+.q-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:auto}
+.home-btn{padding:10px 16px;font-weight:600;font-size:13px;border-bottom:1px solid var(--b);margin-bottom:4px}
+.home-btn:hover{background:var(--ag);color:var(--a)}
+.q-low{background:#ef4444;opacity:.6}
+.q-mid{background:#f59e0b;opacity:.6}
+.q-high{background:#22c55e;opacity:.6}
+
+/* Graph view */
+.graph-btn{background:none;border:1px solid var(--b);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--m);cursor:pointer;font-family:var(--font);font-weight:600;transition:all .15s;margin-left:auto}
+.graph-btn:hover{border-color:var(--a);color:var(--a);background:var(--ag)}
+.graph-btn.active{background:var(--a);color:#fff;border-color:var(--a)}
+.graph-view{position:absolute;inset:0;top:44px;background:var(--bg);z-index:40;display:none}
+.graph-view svg{width:100%;height:100%}
+.graph-tooltip{position:fixed;padding:8px 14px;background:var(--t);color:#fff;border-radius:8px;font-size:11px;font-weight:600;pointer-events:none;z-index:60;white-space:nowrap;box-shadow:var(--shadow-md)}
+.graph-legend{position:absolute;bottom:16px;left:16px;display:flex;gap:14px;z-index:45;padding:10px 16px;background:var(--s);border:1px solid var(--b);border-radius:10px;box-shadow:var(--shadow-sm)}
+.graph-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--m);font-family:var(--font);font-weight:500}
+.graph-legend-dot{width:8px;height:8px;border-radius:50%}
+
+/* Animations */
+.pg h1{animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
+.pg h2,.pg h3{animation:fadeUp .3s cubic-bezier(.22,1,.36,1) both}
+.pg p,.pg ul,.pg ol,.pg table,.pg blockquote{animation:fadeIn .35s ease .05s both}
+
+/* Mobile */
+.overlay{display:none;position:fixed;inset:0;background:rgba(28,25,23,.2);backdrop-filter:blur(6px);z-index:99}
+@media(max-width:768px){
+  .sb{transform:translateX(-100%);transition:transform .25s cubic-bezier(.22,1,.36,1)}.sb.open{transform:translateX(0)}
+  .sb-resize{display:none}
+  .mn{margin-left:0}
+  .menu-btn{display:block}
+  .overlay.show{display:block}
+  .pg-wrap{padding:24px 18px 60px}
+  .pg h1{font-size:24px}
+  .topbar{padding:10px 18px}
+  .cards{grid-template-columns:repeat(2,1fr);gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="ov" onclick="toggleMenu()"></div>
+<aside class="sb" id="sb">
+  <div class="sb-resize" id="sbResize"></div>
+  <div class="sb-h">
+    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">LLM</span>&nbsp;Wiki</div>
+    <div class="sb-stats" id="stats"></div>
+  </div>
+  <div class="qa-section" id="qaSection"></div>
+  <div class="sb-search"><input id="search" placeholder="검색 (Cmd+K)..." oninput="onSearch(this.value)"></div>
+  <div class="filters" id="filters"></div>
+  <nav class="sb-nav" id="nav"></nav>
+</aside>
+<div class="mn" id="mn">
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+    <div class="bc" id="bc"></div>
+  </div>
+  <div class="graph-view" id="graphView"><svg id="graphSvg"></svg><div class="graph-legend"><div class="graph-legend-item"><div class="graph-legend-dot" style="background:#9b8de0"></div>소스</div><div class="graph-legend-item"><div class="graph-legend-dot" style="background:#5cb8b2"></div>엔티티</div><div class="graph-legend-item"><div class="graph-legend-dot" style="background:#e0a848"></div>개념</div><div class="graph-legend-item"><div class="graph-legend-dot" style="background:#d97050"></div>답변</div></div></div>
+  <div class="pg-wrap" id="pgWrap"><div class="pg" id="pg"></div></div>
+</div>
+<div class="graph-tooltip" id="graphTip" style="display:none"></div>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="data.js"></script>
+<script>
+const D=WIKI_DATA;
+const catMeta={
+  overview:{label:'Home',icon:'◉',badge:'b-ovr'},
+  sources:{label:'소스',icon:'▣',badge:'b-src'},
+  entities:{label:'엔티티',icon:'◆',badge:'b-ent'},
+  concepts:{label:'개념',icon:'●',badge:'b-con'},
+  answers:{label:'답변',icon:'❓',badge:'b-ans'}
+};
+const counts={};
+Object.values(D).forEach(p=>{counts[p.cat]=(counts[p.cat]||0)+1});
+
+// ===== FILTERS =====
+let activeFilters = {cat: new Set(), special: new Set()};
+const POPULAR_SET = new Set((typeof POPULAR_PAGES!=='undefined' && POPULAR_PAGES) || []);
+
+function toggleFilter(type, value){
+  if(activeFilters[type].has(value)) activeFilters[type].delete(value);
+  else activeFilters[type].add(value);
+  buildFilters();
+  buildNav(document.getElementById('search').value.toLowerCase().trim());
+}
+function buildFilters(){
+  const el = document.getElementById('filters');
+  const fc = (type, val, label, active) =>
+    `<span class="f-chip ${active?'active':''}" onclick="toggleFilter('${type}','${val}')">${label}${active?' <span class="fc-x">×</span>':''}</span>`;
+  let html = '';
+  ['concepts','entities','sources'].forEach(c=>{
+    html += fc('cat', c, catMeta[c].label, activeFilters.cat.has(c));
+  });
+  html += fc('special', 'popular', '🔥 인기 정보', activeFilters.special.has('popular'));
+  el.innerHTML = html;
+}
+
+function matchesFilters(p){
+  if(activeFilters.cat.size && !activeFilters.cat.has(p.cat)) return false;
+  if(activeFilters.special.has('popular')){
+    if(!POPULAR_SET.has(p.id)) return false;
+  }
+  return true;
+}
+
+// ===== QUICK ACCESS =====
+function buildQuickAccess(){
+  const el = document.getElementById('qaSection');
+  if(!el) return;
+  const pinned = JSON.parse(localStorage.getItem('wiki_pinned')||'[]');
+
+  const renderItems = (ids) => {
+    const valid = ids.filter(id=>D[id]);
+    if(!valid.length) return '';
+    return valid.map(id=>{
+      const p = D[id];
+      const m = catMeta[p.cat]||{icon:'•'};
+      return `<div class="qa-item" data-id="${id}" onclick="go('${id}')"><span class="qa-icon">${m.icon}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${trunc(p.title,32)}</span></div>`;
+    }).join('');
+  };
+
+  let html = '';
+  html += `<div class="qa-item" data-id="overview" onclick="go('overview')"><span class="qa-icon">◉</span><span>Home</span></div>`;
+  html += `<div class="qa-item" onclick="toggleGraph()"><span class="qa-icon">◎</span><span>그래프 뷰</span></div>`;
+
+  // Today's updates — pages updated on the latest date in the wiki
+  if(typeof RECENT_PAGES!=='undefined' && RECENT_PAGES.length){
+    const latestDate = (D[RECENT_PAGES[0]]||{}).updated;
+    if(latestDate){
+      const todayPages = RECENT_PAGES.filter(id => (D[id]||{}).updated === latestDate);
+      if(todayPages.length){
+        html += `<div class="qa-title">✨ 오늘 업데이트 (${latestDate})</div>` + renderItems(todayPages);
+      }
+    }
+  }
+
+  if(pinned.length){
+    html += `<div class="qa-title">📌 핀</div>` + renderItems(pinned);
+  }
+  el.innerHTML = html;
+}
+
+function addToRecent(id){
+  if(!id || id==='overview') return;
+  let recent = JSON.parse(localStorage.getItem('wiki_recent')||'[]');
+  recent = recent.filter(x=>x!==id);
+  recent.unshift(id);
+  recent = recent.slice(0,10);
+  localStorage.setItem('wiki_recent', JSON.stringify(recent));
+}
+
+function togglePin(id){
+  let pinned = JSON.parse(localStorage.getItem('wiki_pinned')||'[]');
+  if(pinned.includes(id)) pinned = pinned.filter(x=>x!==id);
+  else pinned.unshift(id);
+  pinned = pinned.slice(0,8);
+  localStorage.setItem('wiki_pinned', JSON.stringify(pinned));
+  buildQuickAccess();
+}
+
+// ===== SIDEBAR =====
+function buildNav(filter=''){
+  const nav=document.getElementById('nav');
+  const order=['concepts','entities','sources','answers'];
+  const catOpenState = JSON.parse(localStorage.getItem('wiki_cat_open')||'{}');
+  const tagOpenState = JSON.parse(localStorage.getItem('wiki_tag_open')||'{}');
+  let html='';
+
+  order.forEach(cat=>{
+    let items=Object.values(D).filter(p=>p.cat===cat);
+    if(!items.length)return;
+    // Apply filters
+    items = items.filter(matchesFilters);
+    const m=catMeta[cat]||{label:cat,icon:'•'};
+    let filtered = filter ? items.filter(p=>
+      p.title.toLowerCase().includes(filter) ||
+      p.id.toLowerCase().includes(filter) ||
+      (Array.isArray(p.tags) && p.tags.some(t=>t.toLowerCase().includes(filter)))
+    ) : items;
+    if(!filtered.length) return;
+
+    const catOpen = filter || catOpenState[cat] !== false;
+    html+=`<div class="cat"><div class="cat-head ${catOpen?'':'closed'}" onclick="toggleCat(this,'${cat}')"><span class="arr">▼</span> ${m.label} <span class="cnt">${filtered.length}${filtered.length!==items.length?'/'+items.length:''}</span></div><div class="cat-items" style="max-height:${catOpen?'99999px':'0'}">`;
+
+    // Group by primary tag (only when not searching)
+    const groupByTag = !filter && typeof TAG_GROUPS!=='undefined' && TAG_GROUPS[cat] && filtered.length > 15;
+    if(groupByTag){
+      const groups = TAG_GROUPS[cat];
+      // Build filtered groups: { tag: [pages] }
+      const visibleByTag = {};
+      filtered.forEach(p=>{
+        const tag = (typeof PAGE_PRIMARY_TAG!=='undefined' && PAGE_PRIMARY_TAG[p.id]) || '기타';
+        visibleByTag[tag] = visibleByTag[tag] || [];
+        visibleByTag[tag].push(p);
+      });
+      // Sort tags by size desc, 기타 last
+      const sortedTags = Object.keys(visibleByTag).sort((a,b)=>{
+        if(a==='기타')return 1; if(b==='기타')return -1;
+        return visibleByTag[b].length - visibleByTag[a].length;
+      });
+      sortedTags.forEach(tag=>{
+        const pages = visibleByTag[tag].sort((a,b)=>a.title.localeCompare(b.title));
+        if(pages.length===1){
+          const p=pages[0];
+          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+          return;
+        }
+        const grpKey = cat+':'+tag;
+        const grpOpen = tagOpenState[grpKey] === true || (currentPage && pages.some(p=>p.id===currentPage));
+        html+=`<div class="tag-grp"><div class="tag-grp-head ${grpOpen?'':'closed'}" onclick="toggleTagGrp(this,'${grpKey}')"><span class="arr">▶</span> ${tag} <span class="cnt">${pages.length}</span></div><div class="tag-grp-items" style="max-height:${grpOpen?'99999px':'0'}">`;
+        pages.forEach(p=>{
+          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+        });
+        html+=`</div></div>`;
+      });
+    } else {
+      filtered.sort((a,b)=>a.title.localeCompare(b.title)).forEach(p=>{
+        html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+      });
+    }
+    html+=`</div></div>`;
+  });
+  if(filter&&!html)html=`<div style="padding:24px 16px;color:var(--d);font-size:13px;text-align:center">검색 결과 없음</div>`;
+  nav.innerHTML=html;
+  hlActive();
+}
+
+function credMini(id){
+  const c = typeof CREDIBILITY_DATA!=='undefined' && CREDIBILITY_DATA[id];
+  if(!c) return '';
+  const cls = {A:'cred-a',B:'cred-b',C:'cred-c',D:'cred-d'}[c.tier]||'';
+  return `<span class="cred-mini ${cls}" title="신뢰도 ${c.tier} (${c.score}/12)">${c.tier}</span>`;
+}
+
+function toggleTagGrp(el, key){
+  el.classList.toggle('closed');
+  const state = JSON.parse(localStorage.getItem('wiki_tag_open')||'{}');
+  state[key] = !el.classList.contains('closed');
+  localStorage.setItem('wiki_tag_open', JSON.stringify(state));
+  const items = el.nextElementSibling;
+  if(items) items.style.maxHeight = el.classList.contains('closed') ? '0' : '99999px';
+}
+function trunc(s,n){return s.length>n?s.substring(0,n)+'…':s}
+function qDot(id){const q=typeof QUALITY_SCORES!=='undefined'&&QUALITY_SCORES[id];if(!q)return'';const s=q.score;const c=s<=4?'q-low':s<=7?'q-mid':'q-high';let dot=`<span class="q-dot ${c}" title="품질 ${s}/${q.max}"></span>`;const ct=typeof CONTRADICTION_DATA!=='undefined'&&CONTRADICTION_DATA[id];if(ct&&ct.length){const ur=ct.filter(c=>c.status==='unresolved').length;if(ur)dot+=`<span class="c-dot" title="${ur}개 미해결 모순">⚠</span>`}return dot}
+function toggleCat(el, cat){
+  el.classList.toggle('closed');
+  if(cat){
+    const state = JSON.parse(localStorage.getItem('wiki_cat_open')||'{}');
+    state[cat] = !el.classList.contains('closed');
+    localStorage.setItem('wiki_cat_open', JSON.stringify(state));
+  }
+  const items = el.nextElementSibling;
+  if(items) items.style.maxHeight = el.classList.contains('closed') ? '0' : '99999px';
+}
+function toggleMenu(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show')}
+const total=Object.keys(D).length;
+document.getElementById('stats').innerHTML=`<span><b>${counts.concepts||0}</b> 개념</span><span><b>${counts.entities||0}</b> 엔티티</span><span><b>${counts.sources||0}</b> 소스</span><span><b>${counts.answers||0}</b> 답변</span><span style="border-left:1px solid var(--b);padding-left:10px"><b>${total}</b> 전체</span>`;
+let searchT;
+function onSearch(v){clearTimeout(searchT);searchT=setTimeout(()=>buildNav(v.toLowerCase().trim()),150)}
+
+// ===== SIDEBAR RESIZE =====
+(function(){
+  const sb=document.getElementById('sb');
+  const mn=document.getElementById('mn');
+  const handle=document.getElementById('sbResize');
+  let dragging=false,startX,startW;
+
+  handle.addEventListener('mousedown',e=>{
+    e.preventDefault();
+    dragging=true;
+    startX=e.clientX;
+    startW=sb.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.cursor='col-resize';
+    document.body.style.userSelect='none';
+  });
+
+  document.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    const min=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sw-min'));
+    const max=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sw-max'));
+    let w=startW+(e.clientX-startX);
+    w=Math.max(min,Math.min(max,w));
+    document.documentElement.style.setProperty('--sw',w+'px');
+    sb.style.width=w+'px';
+    mn.style.marginLeft=w+'px';
+  });
+
+  document.addEventListener('mouseup',()=>{
+    if(!dragging)return;
+    dragging=false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor='';
+    document.body.style.userSelect='';
+  });
+})();
+
+// ===== PAGE VIEW =====
+let currentPage='overview';
+function go(id){
+  const p=D[id];
+  if(!p)return;
+  currentPage=id;
+  const m=catMeta[p.cat]||{label:p.cat,badge:'b-ovr'};
+  const catLabel=catMeta[p.cat]?.label||p.cat;
+  let bc=`<span class="cur" style="cursor:pointer" onclick="go('overview')">Wiki</span>`;
+  if(p.cat!=='overview'){
+    bc+=`<span class="sep">/</span><span>${catLabel}</span>`;
+    bc+=`<span class="sep">/</span><span class="cur">${trunc(p.title,44)}</span>`;
+  }
+  document.getElementById('bc').innerHTML=bc;
+
+  const pg=document.getElementById('pg');
+  pg.style.animation='none';pg.offsetHeight;pg.style.animation='';
+
+  // === Meta strip ===
+  let meta=`<div class="meta"><div class="meta-i"><span class="badge ${m.badge}">${catLabel}</span></div>`;
+  if(p.type && p.type!==p.cat.replace(/s$/,''))meta+=`<div class="meta-i"><span style="color:var(--d)">유형:</span> ${p.type}</div>`;
+  if(p.publication_type)meta+=`<div class="meta-i"><span style="color:var(--d)">포맷:</span> ${p.publication_type}</div>`;
+  if(p.read_min)meta+=`<div class="meta-i meta-stat">⏱ 읽기 ~${p.read_min}분</div>`;
+  if(p.updated)meta+=`<div class="meta-i"><span style="color:var(--d)">업데이트:</span> ${p.updated}</div>`;
+  if(p.stale_days!=null){
+    const sd=p.stale_days;
+    const cls=sd>365?'stale-old':(sd>180?'stale-warn':'stale-fresh');
+    const label=sd<30?`fresh (${sd}d)`:(sd>365?`오래됨 ${Math.round(sd/30)}개월`:(sd>180?`검토필요 ${Math.round(sd/30)}개월`:`${sd}일 전 확인`));
+    if(sd>=30)meta+=`<div class="meta-i"><span class="stale-badge ${cls}">${label}</span></div>`;
+  }
+  if(p.concept_meta && p.concept_meta.status){
+    const cls='status-'+p.concept_meta.status;
+    meta+=`<div class="meta-i"><span class="status-chip ${cls}">${p.concept_meta.status}</span></div>`;
+  }
+  if(p.url)meta+=`<div class="meta-i"><a class="meta-url" href="${p.url}" onclick="window.open(this.href);return false;">원본 링크 ↗</a></div>`;
+  const cr=typeof CREDIBILITY_DATA!=='undefined'&&CREDIBILITY_DATA[id];
+  if(cr){const cc={A:'cred-a',B:'cred-b',C:'cred-c',D:'cred-d'}[cr.tier]||'';meta+=`<div class="meta-i"><span class="badge ${cc}">신뢰도 ${cr.tier} (${cr.score}/12)</span></div>`}
+  meta+=`</div>`;
+
+  // === One-liner ===
+  const oneLiner = p.one_liner ? `<p class="one-liner">${escapeHtml(p.one_liner)}</p>` : '';
+
+  // === TL;DR card (sources with key_takeaways) ===
+  let tldr='';
+  if(p.key_takeaways && p.key_takeaways.length){
+    tldr=`<div class="tldr-card"><h3>TL;DR</h3><ul>${p.key_takeaways.map(k=>`<li>${escapeHtml(k)}</li>`).join('')}</ul></div>`;
+  }
+
+  // === Tags ===
+  const tagsHtml = (p.tags&&p.tags.length)?`<div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:'';
+
+  // === Claim-verification bar ===
+  let claimBar='';
+  const cs=typeof CLAIM_STATS!=='undefined'&&CLAIM_STATS[id];
+  if(cs&&cs.total>0){
+    const t=cs.total;
+    claimBar=`<div class="claim-bar" title="검증: 높음${cs.high} 중간${cs.medium} 낮음${cs.low} 분쟁${cs.disputed}"><span class="cb-high" style="width:${cs.high/t*100}%"></span><span class="cb-mid" style="width:${cs.medium/t*100}%"></span><span class="cb-low" style="width:${cs.low/t*100}%"></span><span class="cb-disp" style="width:${cs.disputed/t*100}%"></span></div>`;
+  }
+
+  // === Body with Essential star-bullets styled ===
+  let bodyHtml = p.html || '';
+  bodyHtml = bodyHtml.replace(/<li>(★\s*[^<]*)/g, '<li class="essential">$1');
+
+  // === Backlinks ===
+  let backlinks='';
+  const bl=typeof BACKLINKS!=='undefined'&&BACKLINKS[id];
+  if(bl&&bl.length){
+    backlinks+=`<div class="bl-section"><h2>이 페이지를 참조하는 문서 (${bl.length})</h2><div class="bl-list">`;
+    bl.sort((a,b)=>(D[a]?.title||a).localeCompare(D[b]?.title||b)).forEach(bid=>{
+      const bp=D[bid];if(!bp)return;
+      const bm=catMeta[bp.cat]||{badge:'b-ovr',label:bp.cat};
+      backlinks+=`<div class="bl-item" onclick="go('${bid}')"><span class="badge ${bm.badge}">${bm.label}</span> ${trunc(bp.title,40)}</div>`;
+    });
+    backlinks+=`</div></div>`;
+  }
+
+  // === Related pages ===
+  let related='';
+  const rp=typeof RELATED_PAGES!=='undefined'&&RELATED_PAGES[id];
+  if(rp&&rp.length){
+    related+=`<div class="bl-section"><h2>관련 페이지</h2><div class="rel-grid">`;
+    rp.forEach(r=>{
+      const rpage=D[r.id];if(!rpage)return;
+      const rm=catMeta[rpage.cat]||{badge:'b-ovr',label:rpage.cat};
+      related+=`<div class="rel-card" onclick="go('${r.id}')"><span class="badge ${rm.badge}">${rm.label}</span> ${trunc(rpage.title,36)}</div>`;
+    });
+    related+=`</div></div>`;
+  }
+
+  // === Rail (infobox + TOC) ===
+  const railPieces=[];
+  if(p.infobox){railPieces.push(renderInfobox(p.infobox));}
+  if(p.toc && p.toc.length>=3){railPieces.push(renderTocRail(p.toc));}
+  const hasRail = railPieces.length>0;
+  const railHtml = hasRail ? `<aside class="pg-rail">${railPieces.join('')}</aside>` : '';
+
+  const bodyInner = `<h1>${p.title}</h1>${oneLiner}${meta}${tagsHtml}${claimBar}${tldr}${bodyHtml}${backlinks}${related}`;
+  const h = `<div class="pg-layout${hasRail?'':' no-rail'}"><div class="pg-body">${bodyInner}</div>${railHtml}</div>`;
+
+  pg.innerHTML=h;
+  document.querySelectorAll('.wl').forEach(el=>{const t=el.dataset.t;if(!D[t]){el.classList.add('dead');el.title='페이지 미생성: '+t}else{el.addEventListener('click',e=>{e.preventDefault();go(t)})}});
+  // TOC smooth-scroll + active highlight via IntersectionObserver
+  if(hasRail && p.toc && p.toc.length>=3){initTocHighlight(p.toc);}
+  hlActive();
+  document.getElementById('sb').classList.remove('open');
+  document.getElementById('ov').classList.remove('show');
+  // Close graph if open
+  if(graphOpen){toggleGraph()}
+  window.scrollTo({top:0,behavior:'smooth'});
+  history.pushState(null,'','#'+id);
+  addToRecent(id);
+  buildQuickAccess();
+}
+
+function hlActive(){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('act',n.dataset.id===currentPage));
+}
+
+// ===== TL;DR / Infobox / TOC helpers =====
+function escapeHtml(s){
+  if(s==null)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+const INFOBOX_LABELS={
+  kind:'유형',founded:'설립',headquarters:'본사',website:'웹사이트',
+  key_people:'핵심 인물',notable_products:'주요 제품',parent:'모기업',
+  subsidiaries:'자회사',employees_range:'직원 규모',status:'상태'
+};
+const INFOBOX_ORDER=['kind','status','founded','headquarters','website','key_people','notable_products','parent','subsidiaries','employees_range'];
+
+function renderInfoboxValue(k,v){
+  if(v==null || v==='' || (Array.isArray(v)&&!v.length))return '';
+  if(k==='website' && typeof v==='string' && v.startsWith('http')){
+    return `<a href="${v}" target="_blank" rel="noopener">${v.replace(/^https?:\/\//,'').replace(/\/$/,'')}</a>`;
+  }
+  if(k==='parent' && typeof v==='string' && v.startsWith('entities/') && D[v]){
+    return `<a class="wl" data-t="${v}" onclick="go('${v}')">${escapeHtml(D[v].title)}</a>`;
+  }
+  if(Array.isArray(v)){
+    return `<ul>${v.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>`;
+  }
+  return escapeHtml(v);
+}
+
+function renderInfobox(ib){
+  const rows=[];
+  INFOBOX_ORDER.forEach(k=>{
+    if(ib[k]==null || ib[k]==='' || (Array.isArray(ib[k])&&!ib[k].length))return;
+    const val=renderInfoboxValue(k,ib[k]);
+    if(!val)return;
+    rows.push(`<div class="infobox-row"><div class="infobox-k">${INFOBOX_LABELS[k]||k}</div><div class="infobox-v">${val}</div></div>`);
+  });
+  if(!rows.length)return '';
+  return `<div class="infobox"><div class="infobox-head">Infobox</div><div class="infobox-body">${rows.join('')}</div></div>`;
+}
+
+function renderTocRail(toc){
+  const items=toc.map(t=>`<li class="l${t.level}"><a href="#${t.id}" onclick="event.preventDefault();document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'});">${escapeHtml(t.text)}</a></li>`).join('');
+  return `<div class="toc-rail"><div class="toc-rail-head">목차</div><ul>${items}</ul></div>`;
+}
+
+let _tocObserver=null;
+function initTocHighlight(toc){
+  if(_tocObserver){_tocObserver.disconnect();}
+  const linkMap={};
+  document.querySelectorAll('.toc-rail a').forEach(a=>{
+    const href=a.getAttribute('href');
+    if(href && href.startsWith('#'))linkMap[href.slice(1)]=a;
+  });
+  _tocObserver=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const a=linkMap[e.target.id];
+      if(!a)return;
+      if(e.isIntersecting){
+        document.querySelectorAll('.toc-rail a').forEach(x=>x.classList.remove('active'));
+        a.classList.add('active');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  toc.forEach(t=>{
+    const el=document.getElementById(t.id);
+    if(el)_tocObserver.observe(el);
+  });
+}
+
+// ===== GRAPH VIEW =====
+let graphOpen=false,graphInited=false;
+const catColors={sources:'#9b8de0',entities:'#5cb8b2',concepts:'#e0a848',answers:'#d97050',overview:'#b8a0d8'};
+
+function toggleGraph(){
+  graphOpen=!graphOpen;
+  document.getElementById('graphView').style.display=graphOpen?'block':'none';
+  document.getElementById('pgWrap').style.display=graphOpen?'none':'block';
+  const btn=document.getElementById('graphBtn');
+  if(btn) btn.classList.toggle('active',graphOpen);
+  if(graphOpen&&!graphInited){setTimeout(()=>initGraph(),50)}
+}
+
+function initGraph(){
+  graphInited=true;
+  const container=document.getElementById('graphView');
+  const w=container.clientWidth,h=container.clientHeight;
+  const svg=d3.select('#graphSvg').attr('viewBox',[0,0,w,h]);
+  svg.selectAll('*').remove();
+
+  // Exclude overview from graph
+  const nodes=GRAPH_NODES.filter(n=>n.cat!=='overview').map(n=>({...n}));
+  const validIds=new Set(nodes.map(n=>n.id));
+  const edges=GRAPH_EDGES
+    .filter(e=>validIds.has(e.source)&&validIds.has(e.target))
+    .map(e=>({source:e.source,target:e.target}));
+
+  const linkCount={};
+  edges.forEach(e=>{linkCount[e.source]=(linkCount[e.source]||0)+1;linkCount[e.target]=(linkCount[e.target]||0)+1});
+  nodes.forEach(n=>{n.links=linkCount[n.id]||0});
+
+  const tip=document.getElementById('graphTip');
+  const r=d=>Math.max(3.5,Math.min(20,Math.sqrt(d.links)*3));
+  const nodeMap=new Map(nodes.map(n=>[n.id,n]));
+  const maxLinks=Math.max(...nodes.map(n=>n.links),1);
+
+  // ── Subtle radial background ring (orientation hint) ──
+  const defs=svg.append('defs');
+  const bgGrad=defs.append('radialGradient').attr('id','bg-grad').attr('cx','50%').attr('cy','50%').attr('r','50%');
+  bgGrad.append('stop').attr('offset','0%').attr('stop-color','var(--a)').attr('stop-opacity',.04);
+  bgGrad.append('stop').attr('offset','60%').attr('stop-color','var(--a)').attr('stop-opacity',.01);
+  bgGrad.append('stop').attr('offset','100%').attr('stop-color','var(--a)').attr('stop-opacity',0);
+
+  const g=svg.append('g');
+  svg.call(d3.zoom().scaleExtent([.1,5]).on('zoom',e=>g.attr('transform',e.transform)));
+
+  // Background halo (sized after outerR; uses Math.min default)
+
+  // Concentric guide rings (drawn after radii are computed below)
+  const drawRings=()=>[0.35,0.65,1.0].forEach(p=>{
+    g.append('circle').attr('cx',w/2).attr('cy',h/2).attr('r',outerR*p)
+      .attr('fill','none').attr('stroke','var(--b)').attr('stroke-opacity',.25)
+      .attr('stroke-dasharray','2,4').attr('pointer-events','none');
+  });
+
+  // ── Centrality-based radial layout: hubs at center, leaves outward ──
+  // Outer radius — leaves margin so nodes/labels don't clip
+  const padding=160;
+  const outerR=Math.max(140,Math.min(w,h)/2-padding);
+  const innerR=outerR*0.18;
+  // Background halo
+  g.insert('circle','g').attr('cx',w/2).attr('cy',h/2).attr('r',outerR*1.15)
+    .attr('fill','url(#bg-grad)').attr('pointer-events','none');
+  drawRings();
+  const targetRadius=d=>{
+    const norm=1-Math.min(1,d.links/maxLinks);
+    return innerR+(outerR-innerR)*Math.pow(norm,0.85);
+  };
+
+  const sim=d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(edges).id(d=>d.id).distance(45).strength(.3))
+    .force('charge',d3.forceManyBody().strength(-60))
+    .force('center',d3.forceCenter(w/2,h/2))
+    .force('radial',d3.forceRadial(targetRadius,w/2,h/2).strength(0.35))
+    .force('collide',d3.forceCollide(d=>r(d)+3))
+    .velocityDecay(.65)
+    .alphaDecay(.04);
+
+  // ── Curved edges using path ──
+  const link=g.append('g').attr('fill','none')
+    .selectAll('path').data(edges).join('path')
+    .attr('stroke',d=>{const sc=nodeMap.get(d.source.id||d.source);return sc?catColors[sc.cat]:'#ccc'})
+    .attr('stroke-opacity',d=>{const s=nodeMap.get(d.source.id||d.source),t=nodeMap.get(d.target.id||d.target);const avg=((s?.links||1)+(t?.links||1))/2;return Math.min(.45,.12+avg*0.015)})
+    .attr('stroke-width',d=>{const s=nodeMap.get(d.source.id||d.source),t=nodeMap.get(d.target.id||d.target);const avg=((s?.links||1)+(t?.links||1))/2;return Math.min(1.5,.4+avg*0.035)});
+
+  // ── Nodes with subtle inner highlight ──
+  const node=g.append('g').selectAll('circle').data(nodes).join('circle')
+    .attr('r',r)
+    .attr('fill',d=>catColors[d.cat]||'#999')
+    .attr('opacity',.92)
+    .style('cursor','pointer')
+    .style('transition','r .25s cubic-bezier(.22,1,.36,1), opacity .25s ease')
+    .on('click',(e,d)=>{go(d.id)})
+    .on('mouseover',(e,d)=>{
+      tip.style.display='block';tip.textContent=`${d.title} · ${d.links}개 연결`;
+      const neighbors=new Set([d.id]);
+      edges.forEach(l=>{
+        if(l.source.id===d.id)neighbors.add(l.target.id);
+        if(l.target.id===d.id)neighbors.add(l.source.id);
+      });
+      d3.select(e.target).attr('r',r(d)*1.5);
+      node.attr('opacity',n=>neighbors.has(n.id)?1:.06);
+      link.attr('stroke',l=>l.source.id===d.id||l.target.id===d.id?catColors[d.cat]:'#ccc')
+        .attr('stroke-width',l=>l.source.id===d.id||l.target.id===d.id?1.8:.4)
+        .attr('stroke-opacity',l=>l.source.id===d.id||l.target.id===d.id?.9:.03);
+      label.attr('opacity',n=>neighbors.has(n.id)?1:.08);
+    })
+    .on('mousemove',e=>{tip.style.left=e.clientX+14+'px';tip.style.top=e.clientY-12+'px'})
+    .on('mouseout',(e,d)=>{
+      tip.style.display='none';
+      d3.select(e.target).attr('r',r(d));
+      node.attr('opacity',.92);
+      link.attr('stroke',l=>{const sc=nodeMap.get(l.source.id);return sc?catColors[sc.cat]:'#ccc'})
+        .attr('stroke-width',l=>{const s=nodeMap.get(l.source.id),t=nodeMap.get(l.target.id);const avg=((s?.links||1)+(t?.links||1))/2;return Math.min(1.5,.4+avg*0.035)})
+        .attr('stroke-opacity',l=>{const s=nodeMap.get(l.source.id),t=nodeMap.get(l.target.id);const avg=((s?.links||1)+(t?.links||1))/2;return Math.min(.45,.12+avg*0.015)});
+      label.attr('opacity',1);
+    })
+    .call(d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
+
+  // ── Node labels ──
+  const labelData=nodes.filter(d=>d.links>=8);
+  const label=g.append('g').selectAll('text').data(labelData).join('text')
+    .text(d=>d.title.length>18?d.title.slice(0,16)+'…':d.title)
+    .attr('font-size','8px')
+    .attr('font-weight',500)
+    .attr('fill',d=>catColors[d.cat]||'#666')
+    .attr('text-anchor','middle')
+    .attr('dy',d=>r(d)+9)
+    .attr('font-family','var(--font)')
+    .attr('pointer-events','none');
+
+  sim.on('tick',()=>{
+    link.attr('d',d=>{
+      const dx=d.target.x-d.source.x,dy=d.target.y-d.source.y;
+      const dr=Math.sqrt(dx*dx+dy*dy)*1.8;
+      return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+    });
+    node.attr('cx',d=>d.x).attr('cy',d=>d.y);
+    label.attr('x',d=>d.x).attr('y',d=>d.y);
+  });
+}
+
+// ===== INIT =====
+buildFilters();
+buildQuickAccess();
+buildNav();
+const hash=location.hash.slice(1);
+if(hash&&D[hash])go(hash);
+else if(D['overview'])go('overview');
+
+window.addEventListener('popstate',()=>{
+  const h=location.hash.slice(1);
+  if(h&&D[h])go(h);
+  else if(D['overview'])go('overview');
+});
+
+// Keyboard shortcuts: Cmd/Ctrl+K focus search, Esc clear
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='k'){
+    e.preventDefault();
+    const s = document.getElementById('search');
+    s.focus(); s.select();
+  } else if(e.key==='Escape' && document.activeElement.id==='search'){
+    const s = document.getElementById('search');
+    s.value=''; onSearch('');s.blur();
+  }
+});
+</script>
+</body>
+</html>
