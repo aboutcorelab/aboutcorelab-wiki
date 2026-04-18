@@ -478,18 +478,41 @@ function buildNav(filter=''){
     const catOpen = filter || catOpenState[cat] !== false;
     html+=`<div class="cat"><div class="cat-head ${catOpen?'':'closed'}" onclick="toggleCat(this,'${cat}')"><span class="arr">▼</span> ${m.label} <span class="cnt">${filtered.length}${filtered.length!==items.length?'/'+items.length:''}</span></div><div class="cat-items" style="max-height:${catOpen?'99999px':'0'}">`;
 
-    // Group by primary tag (only when not searching)
-    const groupByTag = !filter && typeof TAG_GROUPS!=='undefined' && TAG_GROUPS[cat] && filtered.length > 15;
-    if(groupByTag){
-      const groups = TAG_GROUPS[cat];
-      // Build filtered groups: { tag: [pages] }
+    // Structured sub-grouping: entities by kind, concepts by category, sources by publication_type
+    // Falls back to primary-tag grouping when no structured data is available
+    const hasStructuredGroups = !filter && typeof SIDEBAR_GROUPS!=='undefined' && SIDEBAR_GROUPS[cat] && Object.keys(SIDEBAR_GROUPS[cat]).length > 1;
+    const groupByTag = !filter && !hasStructuredGroups && typeof TAG_GROUPS!=='undefined' && TAG_GROUPS[cat] && filtered.length > 15;
+
+    if(hasStructuredGroups){
+      const labels = (typeof SIDEBAR_GROUP_LABELS!=='undefined' && SIDEBAR_GROUP_LABELS[cat]) || {};
+      const orderList = (typeof SIDEBAR_GROUP_ORDER!=='undefined' && SIDEBAR_GROUP_ORDER[cat]) || [];
+      // Bucket filtered pages into sub-groups using PAGE_SIDEBAR_GROUP
+      const visibleByGroup = {};
+      filtered.forEach(p=>{
+        const g = (typeof PAGE_SIDEBAR_GROUP!=='undefined' && PAGE_SIDEBAR_GROUP[p.id]) ?? '';
+        (visibleByGroup[g] = visibleByGroup[g] || []).push(p);
+      });
+      // Ordering: use SIDEBAR_GROUP_ORDER where available, then remaining by count desc
+      const known = orderList.filter(k=>visibleByGroup[k]);
+      const rest = Object.keys(visibleByGroup).filter(k=>!known.includes(k)).sort((a,b)=>visibleByGroup[b].length-visibleByGroup[a].length);
+      const sortedKeys = [...known, ...rest];
+      sortedKeys.forEach(gKey=>{
+        const pages = visibleByGroup[gKey].sort((a,b)=>a.title.localeCompare(b.title));
+        const label = labels[gKey] || gKey || '기타';
+        const grpKey = cat+':'+(gKey||'_blank_');
+        const grpOpen = tagOpenState[grpKey] === true || (currentPage && pages.some(p=>p.id===currentPage));
+        html+=`<div class="tag-grp"><div class="tag-grp-head ${grpOpen?'':'closed'}" onclick="toggleTagGrp(this,'${grpKey}')"><span class="arr">▶</span> ${label} <span class="cnt">${pages.length}</span></div><div class="tag-grp-items" style="max-height:${grpOpen?'99999px':'0'}">`;
+        pages.forEach(p=>{
+          html+=`<div class="ni" data-id="${p.id}" onclick="go('${p.id}')"><span class="ic">${m.icon}</span><span class="ni-text">${p.title}</span>${qDot(p.id)}</div>`;
+        });
+        html+=`</div></div>`;
+      });
+    } else if(groupByTag){
       const visibleByTag = {};
       filtered.forEach(p=>{
         const tag = (typeof PAGE_PRIMARY_TAG!=='undefined' && PAGE_PRIMARY_TAG[p.id]) || '기타';
-        visibleByTag[tag] = visibleByTag[tag] || [];
-        visibleByTag[tag].push(p);
+        (visibleByTag[tag] = visibleByTag[tag] || []).push(p);
       });
-      // Sort tags by size desc, 기타 last
       const sortedTags = Object.keys(visibleByTag).sort((a,b)=>{
         if(a==='기타')return 1; if(b==='기타')return -1;
         return visibleByTag[b].length - visibleByTag[a].length;

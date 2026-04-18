@@ -685,6 +685,60 @@ popular_pages = [pid for pid, c in sorted(link_counts.items(), key=lambda x: -x[
 # Build LOW_QUALITY_PAGES (pages with quality score <= 5)
 low_quality_pages = [pid for pid, q in quality_scores.items() if q['score'] <= 5][:30]
 
+# ===== Structured sidebar sub-groups =====
+# Entities → infobox.kind, Concepts → concept_meta.category, Sources → year
+SIDEBAR_LABELS = {
+    'entities': {
+        'company': '기업', 'person': '인물', 'framework': '프레임워크',
+        'product': '제품', 'tool': '도구', 'organization': '조직',
+        'uncategorized': '기타',
+    },
+    'concepts': {
+        'architecture': '아키텍처', 'benchmark': '벤치마크', 'policy': '정책·거버넌스',
+        'infrastructure': '인프라', 'economic': '경제', 'social': '사회',
+        'methodology': '방법론', 'security': '보안', 'evaluation': '평가',
+        'uncategorized': '기타',
+    },
+    'sources': {
+        'paper': '논문', 'pdf': 'PDF', 'report': '보고서', 'documentation': '공식 문서',
+        'video': '영상', 'podcast': '팟캐스트', 'news': '뉴스',
+        'blog': '블로그·기사', '': '기타',
+    },
+}
+# Preferred display order for entity kinds / concept categories / source pub_types
+SIDEBAR_ORDER = {
+    'entities': ['company', 'person', 'framework', 'product', 'tool', 'organization', 'uncategorized'],
+    'concepts': ['architecture', 'benchmark', 'policy', 'infrastructure', 'methodology',
+                 'economic', 'social', 'security', 'evaluation', 'uncategorized'],
+    'sources': ['paper', 'pdf', 'report', 'documentation', 'video', 'podcast', 'news', 'blog', ''],
+}
+
+sidebar_groups = {'entities': {}, 'concepts': {}, 'sources': {}}
+page_sidebar_group = {}  # {page_id: group_key}
+
+for pid, p in pages.items():
+    cat = p['cat']
+    if cat == 'entities':
+        ib = p.get('infobox') or {}
+        key = (ib.get('kind') or 'uncategorized').lower()
+        if key not in SIDEBAR_LABELS['entities']:
+            key = 'uncategorized'
+        sidebar_groups['entities'].setdefault(key, []).append(pid)
+        page_sidebar_group[pid] = key
+    elif cat == 'concepts':
+        cm = p.get('concept_meta') or {}
+        key = (cm.get('category') or 'uncategorized').lower()
+        if key not in SIDEBAR_LABELS['concepts']:
+            key = 'uncategorized'
+        sidebar_groups['concepts'].setdefault(key, []).append(pid)
+        page_sidebar_group[pid] = key
+    elif cat == 'sources':
+        pt = (p.get('publication_type') or '').lower()
+        if pt not in SIDEBAR_LABELS['sources']:
+            pt = ''  # "기타" bucket
+        sidebar_groups['sources'].setdefault(pt, []).append(pid)
+        page_sidebar_group[pid] = pt
+
 # ===== Home dashboard widgets =====
 def _sort_key(pid):
     p = pages[pid]
@@ -769,6 +823,14 @@ with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(home_concepts_by_cat, f, ensure_ascii=False, indent=None)
     f.write(';\nconst HOME_TOP_TAGS = ')
     json.dump(home_top_tags, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst SIDEBAR_GROUPS = ')
+    json.dump(sidebar_groups, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst SIDEBAR_GROUP_LABELS = ')
+    json.dump(SIDEBAR_LABELS, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst SIDEBAR_GROUP_ORDER = ')
+    json.dump(SIDEBAR_ORDER, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst PAGE_SIDEBAR_GROUP = ')
+    json.dump(page_sidebar_group, f, ensure_ascii=False, indent=None)
     f.write(';\n')
 
 qs_scored = [v['score'] for v in quality_scores.values()]
