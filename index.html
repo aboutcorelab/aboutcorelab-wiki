@@ -210,6 +210,59 @@ a.meta-url:hover{background:rgba(108,92,231,.15);border-color:var(--a);text-deco
 .tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px}
 .tag{padding:3px 12px;background:var(--c);border:1px solid var(--b);border-radius:16px;font-size:11px;color:var(--d);font-weight:500;transition:all .15s;cursor:default}
 .tag:hover{border-color:rgba(108,92,231,.2);color:var(--a);background:var(--ag)}
+.tag-clickable{cursor:pointer}
+.tag-clickable:active{transform:scale(.96)}
+
+/* Tag landing + tag index */
+.tag-landing-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.tag-landing-head h1{margin:0;font-size:28px}
+.tag-landing-head .cnt-pill{font-size:12px;padding:3px 10px;border-radius:12px;background:var(--ag);color:var(--a);font-weight:700;border:1px solid rgba(108,92,231,.15)}
+.tag-landing-head .variants{font-size:11.5px;color:var(--d);margin-left:8px}
+.tag-landing-filters{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 24px;padding-bottom:16px;border-bottom:1px solid var(--b)}
+.tag-landing-filters .f-chip{font-size:11.5px;padding:4px 11px}
+.tag-group-h{font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--d);margin:28px 0 10px;padding-bottom:5px;border-bottom:1px dashed var(--b)}
+.tag-group-h:first-child{margin-top:0}
+.tag-result-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.tag-result-card{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:14px 16px;cursor:pointer;transition:all .18s;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:6px;min-height:92px}
+.tag-result-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.tag-result-card .t{font-size:13.5px;font-weight:600;color:var(--t);line-height:1.35}
+.tag-result-card .ol{font-size:12px;color:var(--m);line-height:1.5;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tag-result-card .r{display:flex;align-items:center;gap:6px;margin-top:2px}
+.tag-result-card .r .badge{font-size:9px;padding:2px 6px}
+
+/* Tag cloud (index page) */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px}
+.tag-cloud .tc{padding:6px 14px;background:var(--c);border:1px solid var(--b);border-radius:18px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-size:12.5px;color:var(--t)}
+.tag-cloud .tc:hover{border-color:var(--a);color:var(--a);background:var(--ag);transform:translateY(-1px)}
+.tag-cloud .tc .c{font-size:10.5px;color:var(--d);font-weight:700;background:var(--bg);padding:1px 6px;border-radius:8px}
+
+/* Home dashboard */
+.home-hero{margin-bottom:24px;padding:20px 22px;background:linear-gradient(135deg,var(--ag),rgba(108,92,231,.02));border:1px solid rgba(108,92,231,.15);border-radius:var(--rad)}
+.home-hero h1{margin:0 0 6px;font-size:26px;color:var(--t);letter-spacing:-.3px}
+.home-hero .lead{font-size:14px;color:var(--m);line-height:1.6;max-width:640px}
+.home-stats{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.home-stat{font-size:11.5px;color:var(--d);font-weight:500}
+.home-stat b{font-size:16px;color:var(--a);font-weight:800;margin-right:4px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.home-widget{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:14px 16px 16px;box-shadow:var(--shadow-sm)}
+.home-widget-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--b)}
+.home-widget-head h3{margin:0;font-size:12.5px;font-weight:800;letter-spacing:.5px;color:var(--t);text-transform:uppercase}
+.home-widget-head .more{font-size:11px;color:var(--d);cursor:pointer;font-weight:500;text-decoration:none}
+.home-widget-head .more:hover{color:var(--a)}
+.home-widget ul{list-style:none;margin:0;padding:0}
+.home-widget li{padding:7px 0;border-bottom:1px dashed rgba(229,225,218,.55);line-height:1.45}
+.home-widget li:last-child{border-bottom:none}
+.home-widget li a{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:var(--t);font-size:13px;border:none;padding:0;cursor:pointer;font-weight:500}
+.home-widget li a:hover{color:var(--a)}
+.home-widget li .w-meta{font-size:10.5px;color:var(--d);font-weight:500;flex-shrink:0;white-space:nowrap}
+.home-widget li .w-ol{font-size:11.5px;color:var(--m);line-height:1.4;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.home-widget.home-w-tags .tag-cloud{gap:5px}
+.home-widget.home-w-tags .tc{font-size:11.5px;padding:4px 10px}
+.home-widget.home-w-concepts .group-h{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--d);margin:8px 0 2px;padding-top:6px;border-top:1px dashed rgba(229,225,218,.5)}
+.home-widget.home-w-concepts .group-h:first-child{margin-top:0;padding-top:0;border-top:none}
+.home-view-full{text-align:center;margin-top:24px}
+.home-view-full a{font-size:11.5px;color:var(--m);text-decoration:none;padding:6px 14px;border:1px solid var(--b);border-radius:14px;font-weight:500}
+.home-view-full a:hover{color:var(--a);border-color:var(--a)}
 
 /* Cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
@@ -361,8 +414,10 @@ function buildQuickAccess(){
   };
 
   let html = '';
-  html += `<div class="qa-item" data-id="overview" onclick="go('overview')"><span class="qa-icon">◉</span><span>Home</span></div>`;
+  html += `<div class="qa-item" data-id="overview" onclick="navigate('#home')"><span class="qa-icon">◉</span><span>Home (대시보드)</span></div>`;
+  html += `<div class="qa-item" onclick="navigate('#tags')"><span class="qa-icon">🏷</span><span>태그 인덱스</span></div>`;
   html += `<div class="qa-item" onclick="toggleGraph()"><span class="qa-icon">◎</span><span>그래프 뷰</span></div>`;
+  if(D['overview']){ html += `<div class="qa-item" onclick="go('overview')"><span class="qa-icon">📖</span><span>전체 개요 (서술형)</span></div>`; }
 
   // Today's updates — pages updated on the latest date in the wiki
   if(typeof RECENT_PAGES!=='undefined' && RECENT_PAGES.length){
@@ -585,7 +640,10 @@ function go(id){
   }
 
   // === Tags ===
-  const tagsHtml = (p.tags&&p.tags.length)?`<div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:'';
+  const tagList = (p.canonical_tags && p.canonical_tags.length) ? p.canonical_tags : (p.tags||[]);
+  const tagsHtml = tagList.length
+    ? `<div class="tags">${tagList.map(t=>`<span class="tag tag-clickable" onclick="openTag('${t.replace(/'/g,"\\'")}')">${t}</span>`).join('')}</div>`
+    : '';
 
   // === Claim-verification bar ===
   let claimBar='';
@@ -652,6 +710,180 @@ function go(id){
 
 function hlActive(){
   document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('act',n.dataset.id===currentPage));
+}
+
+// ===== Tag landing / Tag index / Home dashboard =====
+function _resetPg(){
+  const pg=document.getElementById('pg');
+  pg.style.animation='none';pg.offsetHeight;pg.style.animation='';
+  if(graphOpen){toggleGraph()}
+  document.getElementById('sb').classList.remove('open');
+  document.getElementById('ov').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+  return pg;
+}
+
+function openTag(tag){
+  const pg=_resetPg();
+  currentPage = 'tag/'+tag;
+  const info = (typeof TAG_INDEX!=='undefined') ? TAG_INDEX[tag] : null;
+  if(!info){
+    pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body"><h1>태그: ${escapeHtml(tag)}</h1><p>이 태그로 분류된 페이지가 없습니다.</p></div></div>`;
+    return;
+  }
+  // Update breadcrumb
+  document.getElementById('bc').innerHTML = `<span class="cur" style="cursor:pointer" onclick="navigate('#home')">Wiki</span><span class="sep">/</span><span style="cursor:pointer" onclick="navigate('#tags')">태그</span><span class="sep">/</span><span class="cur">${escapeHtml(tag)}</span>`;
+  history.pushState(null,'','#tag/'+encodeURIComponent(tag));
+  hlActive();
+
+  const variantsHtml = info.variants && info.variants.length
+    ? `<span class="variants">변형: ${info.variants.map(v=>`<code>${escapeHtml(v)}</code>`).join(', ')}</span>`
+    : '';
+  const header = `<div class="tag-landing-head"><h1>#${escapeHtml(tag)}</h1><span class="cnt-pill">${info.count} 페이지</span>${variantsHtml}</div>`;
+
+  // Category filter chips
+  const byCat = info.by_cat || {};
+  const catOrder = ['concepts','entities','sources','answers'];
+  const filterChips = catOrder.filter(c=>byCat[c]).map(c=>{
+    const lbl=(catMeta[c]||{label:c}).label;
+    return `<span class="f-chip" data-cat="${c}" onclick="_toggleTagCatFilter('${c}')">${lbl} (${byCat[c]})</span>`;
+  }).join('');
+  const filters = `<div class="tag-landing-filters" id="tagFilters">${filterChips}</div>`;
+
+  // Grouped result cards
+  const byCatPages = {};
+  info.pages.forEach(pid=>{
+    const p=D[pid]; if(!p) return;
+    byCatPages[p.cat]=byCatPages[p.cat]||[];
+    byCatPages[p.cat].push(p);
+  });
+  const groups = catOrder.filter(c=>byCatPages[c]).map(c=>{
+    const lbl=(catMeta[c]||{label:c}).label;
+    const cards = byCatPages[c].sort((a,b)=>(b.updated||'').localeCompare(a.updated||''))
+      .map(p=>_tagCard(p)).join('');
+    return `<div class="tag-cat-section" data-cat="${c}"><div class="tag-group-h">${lbl} (${byCatPages[c].length})</div><div class="tag-result-grid">${cards}</div></div>`;
+  }).join('');
+
+  pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body">${header}${filters}${groups}</div></div>`;
+}
+
+function _tagCard(p){
+  const bm=catMeta[p.cat]||{badge:'b-ovr',label:p.cat};
+  const ol = p.one_liner ? `<div class="ol">${escapeHtml(p.one_liner)}</div>` : '';
+  const cr = (typeof CREDIBILITY_DATA!=='undefined')?CREDIBILITY_DATA[p.id]:null;
+  const credBadge = cr ? `<span class="badge cred-${cr.tier.toLowerCase()}">신뢰도 ${cr.tier}</span>` : '';
+  const readMin = p.read_min ? `<span class="w-meta">⏱${p.read_min}분</span>` : '';
+  return `<div class="tag-result-card" onclick="go('${p.id}')"><div class="r"><span class="badge ${bm.badge}">${bm.label}</span>${credBadge}${readMin}</div><div class="t">${escapeHtml(p.title)}</div>${ol}</div>`;
+}
+
+function _toggleTagCatFilter(cat){
+  const chips=document.querySelectorAll('#tagFilters .f-chip');
+  chips.forEach(ch=>{
+    if(ch.dataset.cat===cat) ch.classList.toggle('active');
+  });
+  const active=[...chips].filter(c=>c.classList.contains('active')).map(c=>c.dataset.cat);
+  document.querySelectorAll('.tag-cat-section').forEach(sec=>{
+    sec.style.display = (!active.length || active.includes(sec.dataset.cat)) ? '' : 'none';
+  });
+}
+
+function openTagIndex(){
+  const pg=_resetPg();
+  currentPage='tags';
+  document.getElementById('bc').innerHTML = `<span class="cur" style="cursor:pointer" onclick="navigate('#home')">Wiki</span><span class="sep">/</span><span class="cur">태그 인덱스</span>`;
+  history.pushState(null,'','#tags');
+  hlActive();
+  if(typeof TAG_INDEX==='undefined'){
+    pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body"><h1>태그 인덱스</h1><p>태그 데이터를 사용할 수 없습니다.</p></div></div>`; return;
+  }
+  const entries = Object.entries(TAG_INDEX).sort((a,b)=>b[1].count-a[1].count);
+  const cloud = entries.map(([t,info])=>`<span class="tc" onclick="openTag('${t.replace(/'/g,"\\'")}')">${escapeHtml(t)} <span class="c">${info.count}</span></span>`).join('');
+  pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body"><h1>태그 인덱스</h1><p class="one-liner">위키 전체에서 사용된 태그 ${entries.length}개 — 클릭하면 해당 태그로 분류된 모든 페이지를 볼 수 있습니다.</p><div class="tag-cloud">${cloud}</div></div></div>`;
+}
+
+function renderHomeDashboard(){
+  const pg=_resetPg();
+  currentPage='overview';
+  document.getElementById('bc').innerHTML = `<span class="cur" style="cursor:pointer" onclick="navigate('#home')">Wiki</span>`;
+  history.pushState(null,'','#home');
+  hlActive();
+
+  const stats=[];
+  const catCounts = {};
+  Object.values(D).forEach(p=>{catCounts[p.cat]=(catCounts[p.cat]||0)+1});
+  stats.push(`<span class="home-stat"><b>${catCounts.sources||0}</b> 소스</span>`);
+  stats.push(`<span class="home-stat"><b>${catCounts.concepts||0}</b> 개념</span>`);
+  stats.push(`<span class="home-stat"><b>${catCounts.entities||0}</b> 엔티티</span>`);
+  if(typeof TAG_INDEX!=='undefined')stats.push(`<span class="home-stat"><b>${Object.keys(TAG_INDEX).length}</b> 태그</span>`);
+
+  // Latest ingest date (max updated)
+  let latest='';
+  Object.values(D).forEach(p=>{if(p.updated&&p.updated>latest)latest=p.updated});
+
+  const hero = `<div class="home-hero"><h1>LLM Wiki</h1><p class="lead">AI 에이전트·하네스·메모리·피지컬 AI·AI 정책 관련 지식을 누적 정리하는 지식 베이스. 최근 업데이트 ${latest||'?'}.</p><div class="home-stats">${stats.join('')}</div></div>`;
+
+  const w_recent = _homeWidget('🆕 최근 수집 소스', 'home-w-recent',
+    (typeof HOME_RECENT_SOURCES!=='undefined'?HOME_RECENT_SOURCES:[]).slice(0,8).map(pid=>_homeSourceItem(pid)),
+    null);
+
+  const w_a = _homeWidget('🏅 A등급 시그니처 소스', 'home-w-atier',
+    (typeof HOME_A_TIER_SOURCES!=='undefined'?HOME_A_TIER_SOURCES:[]).slice(0,6).map(pid=>_homeSourceItem(pid)),
+    null);
+
+  const w_ents = _homeWidget('⚡ 인기 엔티티', 'home-w-ents',
+    (typeof HOME_POPULAR_ENTITIES!=='undefined'?HOME_POPULAR_ENTITIES:[]).slice(0,8).map(pid=>_homeItemWithBacklinks(pid)),
+    null);
+
+  // Concepts grouped by category
+  let conceptsBody='';
+  if(typeof HOME_CONCEPTS_BY_CATEGORY!=='undefined'){
+    const catLabels={architecture:'아키텍처',benchmark:'벤치마크·평가',policy:'정책·거버넌스',infrastructure:'인프라',economic:'경제',social:'사회',methodology:'방법론',security:'보안',evaluation:'평가',uncategorized:'기타'};
+    const ordered = Object.entries(HOME_CONCEPTS_BY_CATEGORY).sort((a,b)=>b[1].length-a[1].length);
+    conceptsBody = '<ul>' + ordered.map(([cat,ids])=>{
+      const lbl = catLabels[cat] || cat;
+      return `<li class="group-h">${escapeHtml(lbl)}</li>` + ids.slice(0,4).map(pid=>{
+        const p=D[pid]; if(!p)return '';
+        return `<li><a onclick="go('${pid}')">${escapeHtml(p.title)}</a></li>`;
+      }).join('');
+    }).join('') + '</ul>';
+  }
+  const w_con = `<div class="home-widget home-w-concepts"><div class="home-widget-head"><h3>🧭 주요 개념 (테마별)</h3></div>${conceptsBody}</div>`;
+
+  // Top tags cloud
+  let tagsBody='';
+  if(typeof HOME_TOP_TAGS!=='undefined'){
+    tagsBody = `<div class="tag-cloud">${HOME_TOP_TAGS.map(t=>`<span class="tc" onclick="openTag('${t.tag.replace(/'/g,"\\'")}')">${escapeHtml(t.tag)} <span class="c">${t.count}</span></span>`).join('')}</div>`;
+  }
+  const w_tags = `<div class="home-widget home-w-tags"><div class="home-widget-head"><h3>🏷 인기 태그</h3><a class="more" onclick="navigate('#tags')">전체 →</a></div>${tagsBody}</div>`;
+
+  // Graph shortcut + extras
+  const w_extra = `<div class="home-widget home-w-extra"><div class="home-widget-head"><h3>🔍 탐색 도구</h3></div><ul><li><a onclick="toggleGraph()">🕸 지식 그래프 뷰</a></li><li><a onclick="navigate('#tags')">🏷 태그 인덱스</a></li>${D['overview']?`<li><a onclick="go('overview')">📖 전체 개요 문서 (서술형)</a></li>`:''}</ul></div>`;
+
+  const grid = `<div class="home-grid">${w_recent}${w_a}${w_ents}${w_con}${w_tags}${w_extra}</div>`;
+
+  pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body">${hero}${grid}</div></div>`;
+}
+
+function _homeWidget(title, cls, itemsHtml, moreHref){
+  const more = moreHref ? `<a class="more" onclick="${moreHref}">더보기 →</a>` : '';
+  return `<div class="home-widget ${cls}"><div class="home-widget-head"><h3>${title}</h3>${more}</div><ul>${itemsHtml.join('')}</ul></div>`;
+}
+
+function _homeSourceItem(pid){
+  const p=D[pid]; if(!p)return '';
+  const cr=(typeof CREDIBILITY_DATA!=='undefined')?CREDIBILITY_DATA[pid]:null;
+  const credTag = cr ? `<span class="w-meta">${cr.tier}</span>` : '';
+  const dateTag = p.updated ? `<span class="w-meta">${p.updated.slice(5)}</span>` : '';
+  const ol = p.one_liner ? `<div class="w-ol">${escapeHtml(p.one_liner)}</div>` : '';
+  return `<li><a onclick="go('${pid}')">${escapeHtml(trunc(p.title,48))}</a>${dateTag}${credTag}${ol?'':''}</li>${ol?`<li style="padding-top:0;border:none">${ol}</li>`:''}`;
+}
+
+function _homeItemWithBacklinks(pid){
+  const p=D[pid]; if(!p)return '';
+  const ln=(typeof LINK_COUNTS!=='undefined')?(LINK_COUNTS[pid]||{}).in:0;
+  const back = ln ? `<span class="w-meta">← ${ln}</span>` : '';
+  const ol = p.one_liner ? `<div class="w-ol">${escapeHtml(p.one_liner)}</div>` : '';
+  return `<li><a onclick="go('${pid}')">${escapeHtml(trunc(p.title,48))}</a>${back}</li>${ol?`<li style="padding-top:0;border:none">${ol}</li>`:''}`;
 }
 
 // ===== TL;DR / Infobox / TOC helpers =====
@@ -870,15 +1102,18 @@ function initGraph(){
 buildFilters();
 buildQuickAccess();
 buildNav();
-const hash=location.hash.slice(1);
-if(hash&&D[hash])go(hash);
-else if(D['overview'])go('overview');
+function navigate(rawHash){
+  const h = (rawHash||'').replace(/^#/,'');
+  if(!h || h==='overview' || h==='home'){ renderHomeDashboard(); return; }
+  if(h==='tags' || h==='tag-index'){ openTagIndex(); return; }
+  if(h.startsWith('tag/')){ openTag(decodeURIComponent(h.slice(4))); return; }
+  if(D[h]){ go(h); return; }
+  renderHomeDashboard();
+}
 
-window.addEventListener('popstate',()=>{
-  const h=location.hash.slice(1);
-  if(h&&D[h])go(h);
-  else if(D['overview'])go('overview');
-});
+navigate(location.hash);
+window.addEventListener('popstate',()=>navigate(location.hash));
+window.addEventListener('hashchange',()=>navigate(location.hash));
 
 // Keyboard shortcuts: Cmd/Ctrl+K focus search, Esc clear
 document.addEventListener('keydown',e=>{

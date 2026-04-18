@@ -583,24 +583,89 @@ for md_file in sorted(glob.glob(os.path.join(WIKI_DIR, '**', '*.md'), recursive=
     if total_claims > 0:
         claim_stats[page_id] = {'total': total_claims, 'high': high, 'medium': mid, 'low': low_v, 'disputed': disp}
 
-# Build TAG_GROUPS: { page_id: primary_tag }, and inverted { tag: [page_ids] }
-tag_counts = {}
+# ===== Tag normalization =====
+# Collapse case-insensitive variants (Anthropic == anthropic, Claude-Code == claude-code).
+# The canonical form is whichever cased variant appears most often across pages;
+# ties broken by the first-seen variant.
+raw_variant_counts = {}       # {raw_tag: occurrences}
+lower_to_variants = {}        # {lower_tag: {variant: count}}
 for pid, p in pages.items():
-    if not isinstance(p['tags'], list): continue
+    if not isinstance(p.get('tags'), list):
+        continue
     for t in p['tags']:
-        tag_counts[t] = tag_counts.get(t, 0) + 1
+        if not t:
+            continue
+        t = str(t).strip()
+        if not t:
+            continue
+        raw_variant_counts[t] = raw_variant_counts.get(t, 0) + 1
+        lo = t.lower()
+        lower_to_variants.setdefault(lo, {})
+        lower_to_variants[lo][t] = lower_to_variants[lo].get(t, 0) + 1
 
-# Tags with >= 3 pages become groups; rest go into "기타"
+# Canonical form per lowercase key: most-frequent variant (stable)
+canonical_for_lower = {}
+for lo, variants in lower_to_variants.items():
+    canonical_for_lower[lo] = max(variants.items(), key=lambda kv: (kv[1], -len(kv[0])))[0]
+
+# Helper for use throughout the rest of the build
+def canon_tag(t):
+    return canonical_for_lower.get(str(t).lower(), str(t))
+
+# Attach canonical tag list to each page (preserves original tags for citations,
+# adds canonical list used by nav/filter/index)
+for p in pages.values():
+    if isinstance(p.get('tags'), list):
+        # Deduplicate canonicals while preserving order
+        seen = set(); canon = []
+        for t in p['tags']:
+            c = canon_tag(t)
+            if c in seen:
+                continue
+            seen.add(c)
+            canon.append(c)
+        p['canonical_tags'] = canon
+
+# Counts by canonical tag (for sidebar/index)
+tag_counts = {}          # {canonical_tag: page_count}
+tag_pages = {}           # {canonical_tag: [page_ids...] }
+tag_variants = {}        # {canonical_tag: [other-casings...] for display}
+for pid, p in pages.items():
+    canon_list = p.get('canonical_tags', [])
+    for c in canon_list:
+        tag_counts[c] = tag_counts.get(c, 0) + 1
+        tag_pages.setdefault(c, []).append(pid)
+# Build variant display list (canonical excluded; only show if >1 form ever seen)
+for lo, variants in lower_to_variants.items():
+    canon = canonical_for_lower[lo]
+    extras = sorted([v for v in variants if v != canon])
+    if extras:
+        tag_variants[canon] = extras
+
+# Tag index (canonical tag → {count, pages, category_breakdown, variants})
+tag_index = {}
+for c, pids in tag_pages.items():
+    by_cat = {}
+    for pid in pids:
+        cat = pages[pid]['cat']
+        by_cat[cat] = by_cat.get(cat, 0) + 1
+    tag_index[c] = {
+        'count': tag_counts[c],
+        'pages': pids,
+        'by_cat': by_cat,
+        'variants': tag_variants.get(c, []),
+    }
+
+# Build TAG_GROUPS (sidebar): primary tag per page (canonical), first tag with ≥ MIN_GROUP_SIZE
 MIN_GROUP_SIZE = 3
 page_primary_tag = {}
-tag_groups_by_cat = {}  # { cat: { tag: [page_ids] } }
+tag_groups_by_cat = {}  # { cat: { canonical_tag: [page_ids] } }
 for pid, p in pages.items():
     cat = p['cat']
     tag_groups_by_cat.setdefault(cat, {})
-    tags = p['tags'] if isinstance(p['tags'], list) else []
-    # Pick primary tag: first tag that forms a group (>= MIN_GROUP_SIZE)
+    canon_list = p.get('canonical_tags', [])
     primary = None
-    for t in tags:
+    for t in canon_list:
         if tag_counts.get(t, 0) >= MIN_GROUP_SIZE:
             primary = t
             break
@@ -619,6 +684,46 @@ popular_pages = [pid for pid, c in sorted(link_counts.items(), key=lambda x: -x[
 
 # Build LOW_QUALITY_PAGES (pages with quality score <= 5)
 low_quality_pages = [pid for pid, q in quality_scores.items() if q['score'] <= 5][:30]
+
+# ===== Home dashboard widgets =====
+def _sort_key(pid):
+    p = pages[pid]
+    return (parse_date(p.get('updated', '')), parse_date(p.get('created', '')))
+
+# Widget: 최근 수집 소스 (top 10 by updated date)
+home_recent_sources = [pid for pid in sorted(
+    [pid for pid, p in pages.items() if p['cat'] == 'sources'],
+    key=_sort_key, reverse=True
+)][:10]
+
+# Widget: A-tier signature sources (A credibility + recent)
+home_a_tier = [pid for pid in sorted(
+    [pid for pid, p in pages.items()
+     if p['cat'] == 'sources' and credibility_data.get(pid, {}).get('tier') == 'A'],
+    key=_sort_key, reverse=True
+)][:8]
+
+# Widget: Popular entities by inbound link count
+home_popular_entities = [pid for pid, c in sorted(
+    link_counts.items(), key=lambda x: -x[1]['in']
+) if pages.get(pid, {}).get('cat') == 'entities'][:10]
+
+# Widget: concepts grouped by concept_meta.category (top 3 per category, backlink-sorted)
+concept_by_cat = {}
+for pid, p in pages.items():
+    if p['cat'] != 'concepts':
+        continue
+    cm = p.get('concept_meta') or {}
+    cat = cm.get('category', 'uncategorized') or 'uncategorized'
+    concept_by_cat.setdefault(cat, []).append(pid)
+home_concepts_by_cat = {}
+for cat, ids in concept_by_cat.items():
+    ids.sort(key=lambda pid: -link_counts.get(pid, {}).get('in', 0))
+    home_concepts_by_cat[cat] = ids[:5]
+
+# Widget: Top 20 tags (hub tags)
+home_top_tags = sorted(tag_counts.items(), key=lambda x: -x[1])[:20]
+home_top_tags = [{'tag': t, 'count': n} for t, n in home_top_tags]
 
 # Write data.js
 with open(OUT, 'w', encoding='utf-8') as f:
@@ -652,6 +757,18 @@ with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(popular_pages, f, ensure_ascii=False, indent=None)
     f.write(';\nconst LOW_QUALITY_PAGES = ')
     json.dump(low_quality_pages, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst TAG_INDEX = ')
+    json.dump(tag_index, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst HOME_RECENT_SOURCES = ')
+    json.dump(home_recent_sources, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst HOME_A_TIER_SOURCES = ')
+    json.dump(home_a_tier, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst HOME_POPULAR_ENTITIES = ')
+    json.dump(home_popular_entities, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst HOME_CONCEPTS_BY_CATEGORY = ')
+    json.dump(home_concepts_by_cat, f, ensure_ascii=False, indent=None)
+    f.write(';\nconst HOME_TOP_TAGS = ')
+    json.dump(home_top_tags, f, ensure_ascii=False, indent=None)
     f.write(';\n')
 
 qs_scored = [v['score'] for v in quality_scores.values()]
