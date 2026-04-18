@@ -419,17 +419,6 @@ function buildQuickAccess(){
   html += `<div class="qa-item" onclick="toggleGraph()"><span class="qa-icon">◎</span><span>그래프 뷰</span></div>`;
   if(D['overview']){ html += `<div class="qa-item" onclick="go('overview')"><span class="qa-icon">📖</span><span>전체 개요 (서술형)</span></div>`; }
 
-  // Today's updates — pages updated on the latest date in the wiki
-  if(typeof RECENT_PAGES!=='undefined' && RECENT_PAGES.length){
-    const latestDate = (D[RECENT_PAGES[0]]||{}).updated;
-    if(latestDate){
-      const todayPages = RECENT_PAGES.filter(id => (D[id]||{}).updated === latestDate);
-      if(todayPages.length){
-        html += `<div class="qa-title">✨ 오늘 업데이트 (${latestDate})</div>` + renderItems(todayPages);
-      }
-    }
-  }
-
   if(pinned.length){
     html += `<div class="qa-title">📌 핀</div>` + renderItems(pinned);
   }
