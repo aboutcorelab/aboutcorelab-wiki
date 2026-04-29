@@ -31,9 +31,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 /* ===== SIDEBAR ===== */
 .sb{width:var(--sw);min-width:var(--sw-min);max-width:var(--sw-max);background:var(--s);border-right:1px solid var(--b);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:100;overflow:hidden;transition:none}
 .sb-h{padding:20px 18px 16px;border-bottom:1px solid var(--b)}
-.sb-logo{font-size:15px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;letter-spacing:-.1px}
-.sb-logo .dot{width:7px;height:7px;background:var(--g);border-radius:50%;box-shadow:0 0 6px rgba(5,150,105,.3);animation:pulse 3s ease-in-out infinite}
+.sb-logo{font-size:15px;font-weight:700;color:var(--t);display:flex;align-items:baseline;gap:8px;letter-spacing:-.1px;flex-wrap:wrap}
+.sb-logo .dot{width:7px;height:7px;background:var(--g);border-radius:50%;box-shadow:0 0 6px rgba(5,150,105,.3);animation:pulse 3s ease-in-out infinite;align-self:center}
 .sb-logo .accent{color:var(--a)}
+.sb-logo .upd{font-size:10.5px;font-weight:500;color:var(--d);opacity:.75;letter-spacing:0;white-space:nowrap}
 .sb-stats{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--d);font-weight:500}
 .sb-stats b{color:var(--m);font-weight:600}
 .sb-search{padding:10px 12px;border-bottom:1px solid var(--b)}
@@ -238,8 +239,7 @@ a.meta-url:hover{background:rgba(108,92,231,.15);border-color:var(--a);text-deco
 
 /* Home dashboard */
 .home-hero{margin-bottom:24px;padding:20px 22px;background:linear-gradient(135deg,var(--ag),rgba(108,92,231,.02));border:1px solid rgba(108,92,231,.15);border-radius:var(--rad)}
-.home-hero h1{margin:0 0 6px;font-size:26px;color:var(--t);letter-spacing:-.3px;display:flex;align-items:baseline;flex-wrap:wrap;gap:10px}
-.home-hero h1 .updated-tag{font-size:12px;font-weight:500;color:var(--d);letter-spacing:0;opacity:.75;white-space:nowrap}
+.home-hero h1{margin:0 0 6px;font-size:26px;color:var(--t);letter-spacing:-.3px}
 .home-hero .lead{font-size:14px;color:var(--m);line-height:1.6;max-width:640px}
 .home-stats{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
 .home-stat{font-size:11.5px;color:var(--d);font-weight:500}
@@ -337,7 +337,7 @@ a.meta-url:hover{background:rgba(108,92,231,.15);border-color:var(--a);text-deco
 <aside class="sb" id="sb">
   <div class="sb-resize" id="sbResize"></div>
   <div class="sb-h">
-    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">LLM</span>&nbsp;Wiki</div>
+    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">LLM</span>&nbsp;Wiki<span class="upd" id="sbUpd"></span></div>
     <div class="sb-stats" id="stats"></div>
   </div>
   <div class="qa-section" id="qaSection"></div>
@@ -564,6 +564,8 @@ function toggleCat(el, cat){
 function toggleMenu(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show')}
 const total=Object.keys(D).length;
 document.getElementById('stats').innerHTML=`<span><b>${counts.concepts||0}</b> 개념</span><span><b>${counts.entities||0}</b> 엔티티</span><span><b>${counts.sources||0}</b> 소스</span><span><b>${counts.answers||0}</b> 답변</span><span style="border-left:1px solid var(--b);padding-left:10px"><b>${total}</b> 전체</span>`;
+let _latest='';Object.values(D).forEach(p=>{if(p.updated&&p.updated>_latest)_latest=p.updated});
+if(_latest)document.getElementById('sbUpd').textContent=`· ${_latest}`;
 let searchT;
 function onSearch(v){clearTimeout(searchT);searchT=setTimeout(()=>buildNav(v.toLowerCase().trim()),150)}
 
@@ -833,8 +835,7 @@ function renderHomeDashboard(){
   let latest='';
   Object.values(D).forEach(p=>{if(p.updated&&p.updated>latest)latest=p.updated});
 
-  const updatedTag = latest ? `<span class="updated-tag">최종 업데이트 ${latest}</span>` : '';
-  const hero = `<div class="home-hero"><h1>LLM Wiki${updatedTag}</h1><p class="lead">AI 에이전트·하네스·메모리·피지컬 AI·AI 정책 관련 지식을 누적 정리하는 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
+  const hero = `<div class="home-hero"><h1>LLM Wiki</h1><p class="lead">AI 에이전트·하네스·메모리·피지컬 AI·AI 정책 관련 지식을 누적 정리하는 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
 
   const w_recent = _homeWidget('🆕 최근 수집 소스', 'home-w-recent',
     (typeof HOME_RECENT_SOURCES!=='undefined'?HOME_RECENT_SOURCES:[]).slice(0,8).map(pid=>_homeSourceItem(pid)),
