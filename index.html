@@ -115,7 +115,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 
 /* ===== PAGE ===== */
 .pg{animation:fadeUp .4s cubic-bezier(.22,1,.36,1) both}
-.pg h1{font-size:28px;font-weight:700;letter-spacing:-.3px;color:var(--t);margin-bottom:10px;line-height:1.25}
+.pg h1{font-size:28px;font-weight:700;letter-spacing:-.3px;color:var(--t);margin-bottom:10px;line-height:1.25;display:flex;align-items:baseline;flex-wrap:wrap;gap:12px}
+.pg h1 .title-date{font-size:13px;font-weight:500;color:var(--d);letter-spacing:0;opacity:.7;white-space:nowrap}
 .pg h2{font-size:16px;font-weight:700;margin-top:36px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--b);color:var(--t);position:relative}
 .pg h2::after{content:'';position:absolute;bottom:-1px;left:0;width:28px;height:2px;background:var(--a);border-radius:1px;opacity:.5}
 .pg h3{font-size:14px;font-weight:700;margin-top:24px;margin-bottom:6px;color:var(--t)}
@@ -626,7 +627,7 @@ function go(id){
   if(p.type && p.type!==p.cat.replace(/s$/,''))meta+=`<div class="meta-i"><span style="color:var(--d)">유형:</span> ${p.type}</div>`;
   if(p.publication_type)meta+=`<div class="meta-i"><span style="color:var(--d)">포맷:</span> ${p.publication_type}</div>`;
   if(p.read_min)meta+=`<div class="meta-i meta-stat">⏱ 읽기 ~${p.read_min}분</div>`;
-  if(p.updated)meta+=`<div class="meta-i"><span style="color:var(--d)">업데이트:</span> ${p.updated}</div>`;
+  // updated date is now shown next to the h1 title — omitted from meta strip to avoid duplication
   if(p.stale_days!=null){
     const sd=p.stale_days;
     const cls=sd>365?'stale-old':(sd>180?'stale-warn':'stale-fresh');
@@ -702,7 +703,8 @@ function go(id){
   const hasRail = railPieces.length>0;
   const railHtml = hasRail ? `<aside class="pg-rail">${railPieces.join('')}</aside>` : '';
 
-  const bodyInner = `<h1>${p.title}</h1>${oneLiner}${meta}${tagsHtml}${claimBar}${tldr}${bodyHtml}${backlinks}${related}`;
+  const titleDate = p.updated ? `<span class="title-date">업데이트 ${p.updated}</span>` : '';
+  const bodyInner = `<h1>${p.title}${titleDate}</h1>${oneLiner}${meta}${tagsHtml}${claimBar}${tldr}${bodyHtml}${backlinks}${related}`;
   const h = `<div class="pg-layout${hasRail?'':' no-rail'}"><div class="pg-body">${bodyInner}</div>${railHtml}</div>`;
 
   pg.innerHTML=h;
