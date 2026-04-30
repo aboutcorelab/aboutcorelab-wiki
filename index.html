@@ -261,6 +261,11 @@ a.meta-url:hover{background:rgba(108,92,231,.15);border-color:var(--a);text-deco
 .home-widget.home-w-tags .tc{font-size:11.5px;padding:4px 10px}
 .home-widget.home-w-concepts .group-h{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--d);margin:8px 0 2px;padding-top:6px;border-top:1px dashed rgba(229,225,218,.5)}
 .home-widget.home-w-concepts .group-h:first-child{margin-top:0;padding-top:0;border-top:none}
+.home-widget.home-w-hot li a{flex-wrap:wrap}
+.home-widget.home-w-hot .hot-tag{font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 6px;border-radius:3px;text-transform:uppercase;flex-shrink:0}
+.home-widget.home-w-hot .hot-tag.NEW{background:rgba(108,92,231,.15);color:#5849c0}
+.home-widget.home-w-hot .hot-tag.HOT{background:rgba(220,38,38,.12);color:#dc2626}
+.home-widget.home-w-hot .hot-tag.CORE{background:rgba(5,150,105,.12);color:#059669}
 .home-view-full{text-align:center;margin-top:24px}
 .home-view-full a{font-size:11.5px;color:var(--m);text-decoration:none;padding:6px 14px;border:1px solid var(--b);border-radius:14px;font-weight:500}
 .home-view-full a:hover{color:var(--a);border-color:var(--a)}
@@ -371,6 +376,21 @@ Object.values(D).forEach(p=>{counts[p.cat]=(counts[p.cat]||0)+1});
 // ===== FILTERS =====
 let activeFilters = {cat: new Set(), special: new Set()};
 const POPULAR_SET = new Set((typeof POPULAR_PAGES!=='undefined' && POPULAR_PAGES) || []);
+
+// ===== HOT CONCEPTS (manually curated; updated 2026-04-30) =====
+// 최근 ingest된 시그널과 산업 흐름을 바탕으로 큐레이션. 페이지가 위키에 존재하는지 검증됨.
+const HOT_CONCEPTS = [
+  {id:'concepts/claude-code-channels', tag:'NEW', note:'Claude Code를 Telegram/Discord/iMessage에서 원격 제어하는 공식 플러그인'},
+  {id:'concepts/agent-harness',         tag:'HOT', note:'Anthropic 3-에이전트 하네스(Planner+Generator+Evaluator) 출시'},
+  {id:'concepts/agent-skills',          tag:'HOT', note:'SKILL.md + progressive disclosure로 도메인 전문성 패키징'},
+  {id:'concepts/mcp',                   tag:'CORE', note:'AI 도구 통합 오픈 표준 — Adobe·Anthropic·Google 채택 가속'},
+  {id:'concepts/agentic-ai',            tag:'HOT', note:'에이전트 기반 워크플로 — 2026 EU AI Act·Adobe CX의 중심 개념'},
+  {id:'concepts/always-on-agent',       tag:'HOT', note:'24시간 작동하는 자율 에이전트 — Channels·메시징 통합 토대'},
+  {id:'concepts/context-engineering',   tag:'CORE', note:'Anthropic이 형식화한 장기 실행 에이전트의 컨텍스트 관리 패턴'},
+  {id:'concepts/agent-teams',           tag:'NEW', note:'Claude Code의 멀티 에이전트 협업 — 역할 분담 + 핸드오프'},
+  {id:'concepts/multi-agent-orchestration', tag:'HOT', note:'복수 에이전트의 작업 분배·조율 — Adobe CX, OpenAI Swarm'},
+  {id:'concepts/self-correcting-agents', tag:'NEW', note:'GAN 영감 generator-evaluator 패턴으로 자기 비판 한계 우회'},
+];
 
 function toggleFilter(type, value){
   if(activeFilters[type].has(value)) activeFilters[type].delete(value);
@@ -837,6 +857,13 @@ function renderHomeDashboard(){
 
   const hero = `<div class="home-hero"><h1>LLM Wiki</h1><p class="lead">AI 에이전트·하네스·메모리·피지컬 AI·AI 정책 관련 지식을 누적 정리하는 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
 
+  // Hot concepts (manually curated)
+  const w_hot = `<div class="home-widget home-w-hot"><div class="home-widget-head"><h3>🔥 요즘 꼭 알아야 할 AI 개념</h3><span class="more" style="cursor:default">${latest||''}</span></div><ul>${HOT_CONCEPTS.map(c=>{
+    const p=D[c.id]; if(!p)return '';
+    const tagBadge = `<span class="hot-tag ${c.tag}">${c.tag}</span>`;
+    return `<li><a onclick="go('${c.id}')">${escapeHtml(p.title)}${tagBadge}</a><div class="w-ol">${escapeHtml(c.note)}</div></li>`;
+  }).join('')}</ul></div>`;
+
   const w_recent = _homeWidget('🆕 최근 수집 소스', 'home-w-recent',
     (typeof HOME_RECENT_SOURCES!=='undefined'?HOME_RECENT_SOURCES:[]).slice(0,8).map(pid=>_homeSourceItem(pid)),
     null);
@@ -874,7 +901,7 @@ function renderHomeDashboard(){
   // Graph shortcut + extras
   const w_extra = `<div class="home-widget home-w-extra"><div class="home-widget-head"><h3>🔍 탐색 도구</h3></div><ul><li><a onclick="toggleGraph()">🕸 지식 그래프 뷰</a></li><li><a onclick="navigate('#tags')">🏷 태그 인덱스</a></li>${D['overview']?`<li><a onclick="go('overview')">📖 전체 개요 문서 (서술형)</a></li>`:''}</ul></div>`;
 
-  const grid = `<div class="home-grid">${w_recent}${w_a}${w_ents}${w_con}${w_tags}${w_extra}</div>`;
+  const grid = `<div class="home-grid">${w_hot}${w_recent}${w_a}${w_ents}${w_con}${w_tags}${w_extra}</div>`;
 
   pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body">${hero}${grid}</div></div>`;
 }
