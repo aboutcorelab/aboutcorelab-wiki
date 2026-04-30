@@ -730,8 +730,8 @@ function go(id){
 
   pg.innerHTML=h;
   document.querySelectorAll('.wl').forEach(el=>{const t=el.dataset.t;if(!D[t]){el.classList.add('dead');el.title='페이지 미생성: '+t}else{el.addEventListener('click',e=>{e.preventDefault();go(t)})}});
-  // TOC smooth-scroll + active highlight via IntersectionObserver
-  if(hasRail && p.toc && p.toc.length>=3){initTocHighlight(p.toc);}
+  // TOC smooth-scroll + active highlight via IntersectionObserver (only h2 entries)
+  if(hasRail && p.toc && p.toc.length>=3){initTocHighlight(p.toc.filter(t=>t.level===2));}
   hlActive();
   document.getElementById('sb').classList.remove('open');
   document.getElementById('ov').classList.remove('show');
@@ -968,7 +968,8 @@ function renderInfobox(ib){
 }
 
 function renderTocRail(toc){
-  const items=toc.map(t=>`<li class="l${t.level}"><a href="#${t.id}" onclick="event.preventDefault();document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'});">${escapeHtml(t.text)}</a></li>`).join('');
+  // Show only top-level (h2) titles — keeps the rail tight and skips ### subheadings.
+  const items=toc.filter(t=>t.level===2).map(t=>`<li class="l${t.level}"><a href="#${t.id}" onclick="event.preventDefault();document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'});">${escapeHtml(t.text)}</a></li>`).join('');
   return `<div class="toc-rail"><div class="toc-rail-head">목차</div><ul>${items}</ul></div>`;
 }
 
