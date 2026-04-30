@@ -161,14 +161,19 @@ def slugify(text):
     return s if n == 0 else f'{s}-{n}'
 
 def extract_toc(html):
-    """Extract h2/h3 headings from rendered HTML for TOC rendering."""
+    """Extract h2 headings from rendered HTML for the right-rail TOC.
+
+    Note: only h2 (top-level section titles) are emitted. ### subheadings
+    inside Key Points / Tensions are intentionally skipped to keep the TOC
+    tight ("titles only, no blanks").
+    """
     toc = []
-    # Non-greedy match up to the matching closing tag; content is single-line since md_to_html doesn't produce multiline headings
-    for m in re.finditer(r'<(h[23])\s+id="([^"]+)">(.*?)</\1>', html):
-        level = int(m.group(1)[1])
-        tid = m.group(2)
-        text = re.sub(r'<[^>]+>', '', m.group(3)).strip()
-        toc.append({'level': level, 'id': tid, 'text': text})
+    for m in re.finditer(r'<h2\s+id="([^"]+)">(.*?)</h2>', html):
+        tid = m.group(1)
+        text = re.sub(r'<[^>]+>', '', m.group(2)).strip()
+        if not text:
+            continue  # skip any heading that ends up with no visible text
+        toc.append({'level': 2, 'id': tid, 'text': text})
     return toc
 
 def compute_read_min(body_md):
