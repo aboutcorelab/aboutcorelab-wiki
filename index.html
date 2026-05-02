@@ -164,14 +164,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 .infobox-v li{font-size:12px;color:var(--m);line-height:1.5;margin-bottom:2px}
 
 /* TOC rail */
-.toc-rail{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:14px 14px 12px;box-shadow:var(--shadow-sm)}
+.toc-rail{background:var(--c);border:1px solid var(--b);border-radius:var(--rad);padding:12px;box-shadow:var(--shadow-sm)}
 .toc-rail-head{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--d);margin-bottom:8px}
-.toc-rail ul{list-style:none;margin:0;padding:0}
-.toc-rail li{padding:3px 0;line-height:1.4}
-.toc-rail li a{display:block;font-size:12.5px;color:var(--m);text-decoration:none;padding:3px 8px 3px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;transition:all .1s}
+.toc-rail ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
+.toc-rail li{line-height:1.35}
+.toc-rail li a{display:block;font-size:12.5px;color:var(--m);text-decoration:none;padding:4px 8px 4px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;transition:all .1s;overflow-wrap:anywhere}
 .toc-rail li a:hover{color:var(--a);background:var(--ag);border-left-color:rgba(108,92,231,.3)}
 .toc-rail li a.active{color:var(--a);border-left-color:var(--a);background:var(--ag);font-weight:600}
-.toc-rail li.l3 a{padding-left:22px;font-size:12px;color:var(--d)}
 
 /* Collapsible h2 sections */
 .pg details.collapsible{margin:36px 0 14px;padding:0;border:none}
@@ -720,8 +719,9 @@ function go(id){
 
   // === Rail (infobox + TOC) ===
   const railPieces=[];
+  const tocEntries=normalizeTocEntries(p.toc);
   if(p.infobox){railPieces.push(renderInfobox(p.infobox));}
-  if(p.toc && p.toc.length>=3){railPieces.push(renderTocRail(p.toc));}
+  if(tocEntries.length>=3){railPieces.push(renderTocRail(tocEntries));}
   const hasRail = railPieces.length>0;
   const railHtml = hasRail ? `<aside class="pg-rail">${railPieces.join('')}</aside>` : '';
 
@@ -730,8 +730,8 @@ function go(id){
 
   pg.innerHTML=h;
   document.querySelectorAll('.wl').forEach(el=>{const t=el.dataset.t;if(!D[t]){el.classList.add('dead');el.title='페이지 미생성: '+t}else{el.addEventListener('click',e=>{e.preventDefault();go(t)})}});
-  // TOC smooth-scroll + active highlight via IntersectionObserver (only h2 entries)
-  if(hasRail && p.toc && p.toc.length>=3){initTocHighlight(p.toc.filter(t=>t.level===2));}
+  // TOC smooth-scroll + active highlight
+  if(hasRail && tocEntries.length>=3){initTocHighlight(tocEntries);}
   hlActive();
   document.getElementById('sb').classList.remove('open');
   document.getElementById('ov').classList.remove('show');
@@ -933,6 +933,9 @@ function escapeHtml(s){
   if(s==null)return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function jsString(s){
+  return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
 
 const INFOBOX_LABELS={
   kind:'유형',founded:'설립',headquarters:'본사',website:'웹사이트',
@@ -967,9 +970,38 @@ function renderInfobox(ib){
   return `<div class="infobox"><div class="infobox-head">Infobox</div><div class="infobox-body">${rows.join('')}</div></div>`;
 }
 
+const TOC_LABELS={
+  'Definition':'정의',
+  'Why It Matters':'중요성',
+  'Key Points':'핵심 포인트',
+  'Sources':'출처',
+  'Related Concepts':'관련 개념',
+  'Related':'관련',
+  'Tensions':'쟁점',
+  'Summary':'요약',
+  'Key Claims':'핵심 주장',
+  'Metadata':'메타데이터'
+};
+
+function normalizeTocEntries(toc){
+  return (toc||[])
+    .filter(t=>t && t.id && String(t.text||'').trim())
+    .map(t=>({id:String(t.id),text:String(t.text).trim(),level:Number(t.level)||2}))
+    .filter(t=>t.level===2);
+}
+
+function scrollToToc(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const details=el.tagName==='DETAILS'?el:el.closest('details');
+  if(details)details.open=true;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function renderTocRail(toc){
-  // Show only top-level (h2) titles — keeps the rail tight and skips ### subheadings.
-  const items=toc.filter(t=>t.level===2).map(t=>`<li class="l${t.level}"><a href="#${t.id}" onclick="event.preventDefault();document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'});">${escapeHtml(t.text)}</a></li>`).join('');
+  const entries=normalizeTocEntries(toc);
+  if(!entries.length)return '';
+  const items=entries.map(t=>`<li class="l${t.level}"><a href="#${escapeHtml(t.id)}" onclick="event.preventDefault();scrollToToc('${jsString(t.id)}');">${escapeHtml(TOC_LABELS[t.text]||t.text)}</a></li>`).join('');
   return `<div class="toc-rail"><div class="toc-rail-head">목차</div><ul>${items}</ul></div>`;
 }
 

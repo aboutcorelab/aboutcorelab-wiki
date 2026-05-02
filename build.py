@@ -161,12 +161,7 @@ def slugify(text):
     return s if n == 0 else f'{s}-{n}'
 
 def extract_toc(html):
-    """Extract h2 headings from rendered HTML for the right-rail TOC.
-
-    Note: only h2 (top-level section titles) are emitted. ### subheadings
-    inside Key Points / Tensions are intentionally skipped to keep the TOC
-    tight ("titles only, no blanks").
-    """
+    """Extract top-level h2 headings from rendered HTML for the right-rail TOC."""
     toc = []
     for m in re.finditer(r'<h2\s+id="([^"]+)">(.*?)</h2>', html):
         tid = m.group(1)
@@ -212,14 +207,17 @@ def wrap_collapsibles(html, char_threshold=900, bullet_threshold=12):
         chunk = parts[i]
         if re.match(r'<h2', chunk):
             # chunk is the h2 tag, next part is section body
-            title_match = re.search(r'>([^<]+)</h2>', chunk)
-            title = title_match.group(1).strip() if title_match else ''
+            title_match = re.search(r'<h2\s+id="([^"]+)">(.*?)</h2>', chunk, re.DOTALL)
+            section_id = title_match.group(1) if title_match else ''
+            title_html = title_match.group(2).strip() if title_match else ''
+            title = re.sub(r'<[^>]+>', '', title_html).strip()
             next_body = parts[i+1] if i+1 < len(parts) else ''
             body_text_len = len(re.sub(r'<[^>]+>', '', next_body))
             bullet_count = len(re.findall(r'<li>', next_body))
             is_long = body_text_len > char_threshold or bullet_count > bullet_threshold
             if is_long and title not in keep_open_titles:
-                out.append(f'<details class="collapsible" open><summary>{title}</summary>{next_body}</details>')
+                id_attr = f' id="{section_id}"' if section_id else ''
+                out.append(f'<details{id_attr} class="collapsible" open><summary>{title_html}</summary>{next_body}</details>')
             else:
                 out.append(chunk)
                 out.append(next_body)
