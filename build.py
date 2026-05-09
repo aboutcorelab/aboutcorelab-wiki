@@ -232,8 +232,12 @@ def inline(text):
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
     # Italic
     text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
-    # Code
-    text = re.sub(r'`(.+?)`', r'<code>\1</code>', text)
+    # Code (HTML-escape inner content so literal <tags> inside backticks
+    # don't leak as real DOM elements — e.g. `<code>` rendered as text).
+    def _code_sub(m):
+        inner = m.group(1).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        return f'<code>{inner}</code>'
+    text = re.sub(r'`(.+?)`', _code_sub, text)
     # Wikilinks [[path\|text]] (Obsidian escaped pipe in tables)
     text = re.sub(r'\[\[([^\]|\\]+)\\?\|([^\]]+)\]\]', r'<a class="wl" data-t="\1">\2</a>', text)
     # Wikilinks [[path]]
