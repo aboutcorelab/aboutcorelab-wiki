@@ -188,7 +188,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 .toc-rail-head{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--d);margin-bottom:8px}
 .toc-rail ul{list-style:none;margin:0;padding:0;display:grid;gap:1px}
 .toc-rail li{line-height:1.35}
-.toc-rail li a{display:block;font-size:12.5px;color:var(--m);text-decoration:none;padding:4px 8px 4px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;transition:all .1s;overflow-wrap:anywhere}
+.toc-rail li a{display:block;font-size:12.5px;color:var(--m);text-decoration:none;padding:4px 8px 4px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;transition:all .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;word-break:keep-all}
 .toc-rail li a:hover{color:var(--a);background:var(--ag);border-left-color:rgba(37,118,235,.35)}
 .toc-rail li a.active{color:var(--a);border-left-color:var(--a);background:var(--ag);font-weight:600}
 
@@ -361,7 +361,7 @@ a.meta-url:hover{background:rgba(37,118,235,.15);border-color:var(--a);text-deco
 <aside class="sb" id="sb">
   <div class="sb-resize" id="sbResize"></div>
   <div class="sb-h">
-    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">aboutcorelab</span>&nbsp;wiki<span class="upd" id="sbUpd"></span></div>
+    <div class="sb-logo" onclick="navigate('#home')" style="cursor:pointer"><span class="dot"></span> <span class="accent">aboutcorelab</span>&nbsp;wiki<span class="upd" id="sbUpd"></span></div>
     <div class="sb-stats" id="stats"></div>
   </div>
   <div class="qa-section" id="qaSection"></div>
@@ -992,7 +992,7 @@ function renderInfobox(ib){
 
 const TOC_LABELS={
   'Definition':'정의',
-  'Why It Matters':'중요성',
+  'Why It Matters':'왜 중요한가',
   'Key Points':'핵심 포인트',
   'Sources':'출처',
   'Related Concepts':'관련 개념',
