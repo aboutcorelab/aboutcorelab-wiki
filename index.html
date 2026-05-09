@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LLM Wiki</title>
+<title>aboutcorelab wiki</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 :root{
@@ -361,7 +361,7 @@ a.meta-url:hover{background:rgba(37,118,235,.15);border-color:var(--a);text-deco
 <aside class="sb" id="sb">
   <div class="sb-resize" id="sbResize"></div>
   <div class="sb-h">
-    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">LLM</span>&nbsp;Wiki<span class="upd" id="sbUpd"></span></div>
+    <div class="sb-logo" onclick="go('overview')" style="cursor:pointer"><span class="dot"></span> <span class="accent">aboutcorelab</span>&nbsp;wiki<span class="upd" id="sbUpd"></span></div>
     <div class="sb-stats" id="stats"></div>
   </div>
   <div class="qa-section" id="qaSection"></div>
@@ -875,7 +875,7 @@ function renderHomeDashboard(){
   let latest='';
   Object.values(D).forEach(p=>{if(p.updated&&p.updated>latest)latest=p.updated});
 
-  const hero = `<div class="home-hero"><h1>LLM Wiki</h1><p class="lead">AI 에이전트·하네스·메모리·피지컬 AI·AI 정책 관련 지식을 누적 정리하는 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
+  const hero = `<div class="home-hero"><h1>aboutcorelab wiki</h1><p class="lead">AI에 대한 모든 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
 
   // Hot concepts (manually curated)
   const w_hot = `<div class="home-widget home-w-hot"><div class="home-widget-head"><h3>🔥 요즘 꼭 알아야 할 AI 개념</h3><span class="more" style="cursor:default">${latest||''}</span></div><ul>${HOT_CONCEPTS.map(c=>{
