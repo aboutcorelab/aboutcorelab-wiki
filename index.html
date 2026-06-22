@@ -25,7 +25,7 @@
   /* Status palette (kept from prior system, harmonized) */
   --g:#059669;--y:#d97706;--o:#ea580c;--r:#dc2626;--p:#9333ea;
   /* Layout */
-  --sw:480px;--sw-min:200px;--sw-max:480px;
+  --sw:320px;--sw-min:200px;--sw-max:480px;
   --rad:14px;              /* general card radius (Things cards = 18px, density-adjusted) */
   --rad-card:18px;         /* feature cards (TL;DR, hero, widgets) */
   --rad-btn:6px;           /* buttons / inputs */
@@ -57,6 +57,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.7
 .sb-logo .upd{font-size:10.5px;font-weight:500;color:var(--d);opacity:.75;letter-spacing:0;white-space:nowrap}
 .sb-stats{display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--d);font-weight:500}
 .sb-stats b{color:var(--m);font-weight:600}
+.sb-traffic{gap:12px;margin-top:7px;flex-wrap:wrap;font-size:10.5px;opacity:.85}
+.sb-traffic .tlbl{opacity:.7}
 .sb-search{padding:10px 12px;border-bottom:1px solid var(--b)}
 .sb-search input{width:100%;padding:8px 12px;background:var(--h);border:1px solid var(--b);border-radius:var(--rad-btn);color:var(--t);font-family:var(--font);font-size:13px;outline:none;transition:all .2s}
 .sb-search input:focus{border-color:var(--a);box-shadow:0 0 0 3px var(--ag);background:var(--s)}
@@ -263,6 +265,7 @@ a.meta-url:hover{background:rgba(37,118,235,.15);border-color:var(--a);text-deco
 .home-stats{display:flex;gap:20px;margin-top:18px;flex-wrap:wrap}
 .home-stat{font-size:12px;color:var(--d);font-weight:500}
 .home-stat b{font-size:17px;color:var(--a);font-weight:800;margin-right:5px}
+.home-build{margin-top:14px;font-size:11px;color:var(--d);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.2px}
 .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
 .home-widget{background:var(--c);border:1px solid var(--b);border-radius:var(--rad-card);padding:18px 20px 20px;box-shadow:var(--shadow-sm)}
 .home-widget-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--b)}
@@ -363,6 +366,7 @@ a.meta-url:hover{background:rgba(37,118,235,.15);border-color:var(--a);text-deco
   <div class="sb-h">
     <div class="sb-logo" onclick="navigate('#home')" style="cursor:pointer"><span class="dot"></span> <span class="accent">aboutcorelab</span>&nbsp;wiki<span class="upd" id="sbUpd"></span></div>
     <div class="sb-stats" id="stats"></div>
+    <div class="sb-stats sb-traffic" id="trafficStats"></div>
   </div>
   <div class="qa-section" id="qaSection"></div>
   <div class="sb-search"><input id="search" placeholder="검색 (Cmd+K)..." oninput="onSearch(this.value)"></div>
@@ -379,7 +383,7 @@ a.meta-url:hover{background:rgba(37,118,235,.15);border-color:var(--a);text-deco
 </div>
 <div class="graph-tooltip" id="graphTip" style="display:none"></div>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="data.js"></script>
+<script src="data.js?v=__BUILD_VERSION__"></script>
 <script>
 const D=WIKI_DATA;
 const catMeta={
@@ -396,20 +400,13 @@ Object.values(D).forEach(p=>{counts[p.cat]=(counts[p.cat]||0)+1});
 let activeFilters = {cat: new Set(), special: new Set()};
 const POPULAR_SET = new Set((typeof POPULAR_PAGES!=='undefined' && POPULAR_PAGES) || []);
 
-// ===== HOT CONCEPTS (manually curated; updated 2026-04-30) =====
-// 최근 ingest된 시그널과 산업 흐름을 바탕으로 큐레이션. 페이지가 위키에 존재하는지 검증됨.
-const HOT_CONCEPTS = [
-  {id:'concepts/claude-code-channels', tag:'NEW', note:'Claude Code를 Telegram/Discord/iMessage에서 원격 제어하는 공식 플러그인'},
-  {id:'concepts/agent-harness',         tag:'HOT', note:'Anthropic 3-에이전트 하네스(Planner+Generator+Evaluator) 출시'},
-  {id:'concepts/agent-skills',          tag:'HOT', note:'SKILL.md + progressive disclosure로 도메인 전문성 패키징'},
-  {id:'concepts/mcp',                   tag:'CORE', note:'AI 도구 통합 오픈 표준 — Adobe·Anthropic·Google 채택 가속'},
-  {id:'concepts/agentic-ai',            tag:'HOT', note:'에이전트 기반 워크플로 — 2026 EU AI Act·Adobe CX의 중심 개념'},
-  {id:'concepts/always-on-agent',       tag:'HOT', note:'24시간 작동하는 자율 에이전트 — Channels·메시징 통합 토대'},
-  {id:'concepts/context-engineering',   tag:'CORE', note:'Anthropic이 형식화한 장기 실행 에이전트의 컨텍스트 관리 패턴'},
-  {id:'concepts/agent-teams',           tag:'NEW', note:'Claude Code의 멀티 에이전트 협업 — 역할 분담 + 핸드오프'},
-  {id:'concepts/multi-agent-orchestration', tag:'HOT', note:'복수 에이전트의 작업 분배·조율 — Adobe CX, OpenAI Swarm'},
-  {id:'concepts/self-correcting-agents', tag:'NEW', note:'GAN 영감 generator-evaluator 패턴으로 자기 비판 한계 우회'},
-];
+// ===== HOT CONCEPTS =====
+// Auto-curated by site/build.py on each build (HOME_HOT_CONCEPTS).
+// Scoring blends backlink count + recency (updated/created); tag is NEW/CORE/HOT.
+// Note text comes from each concept's one_liner — keep one_liners current.
+const HOT_CONCEPTS = (typeof HOME_HOT_CONCEPTS !== 'undefined' && HOME_HOT_CONCEPTS.length)
+  ? HOME_HOT_CONCEPTS
+  : [];
 
 function toggleFilter(type, value){
   if(activeFilters[type].has(value)) activeFilters[type].delete(value);
@@ -603,6 +600,33 @@ function toggleCat(el, cat){
 function toggleMenu(){document.getElementById('sb').classList.toggle('open');document.getElementById('ov').classList.toggle('show')}
 const total=Object.keys(D).length;
 document.getElementById('stats').innerHTML=`<span><b>${counts.concepts||0}</b> 개념</span><span><b>${counts.entities||0}</b> 엔티티</span><span><b>${counts.sources||0}</b> 소스</span><span><b>${counts.answers||0}</b> 답변</span><span style="border-left:1px solid var(--b);padding-left:10px"><b>${total}</b> 전체</span>`;
+// ===== TRAFFIC STATS =====
+// count.php(서버 카운터, cafe24에서 동작)를 1순위로 쓰고, PHP가 없는 정적 호스팅
+// (GitHub Pages 등)에서 실패하면 counterapi.dev(무인증·CORS 허용) 클라이언트 집계로 폴백한다.
+(function(){const el=document.getElementById('trafficStats');if(!el)return;
+el.style.display='none';
+const n=v=>(v===undefined||v===null||v==='')?'–':Number(v).toLocaleString('ko-KR');
+const render=s=>{if(!s||s.error)return;el.style.display='';
+el.innerHTML=`<span class="tlbl">오늘 방문</span> <b>${n(s.visitors_today)}</b><span class="tlbl">오늘 조회</span> <b>${n(s.visits_today)}</b><span style="border-left:1px solid var(--b);padding-left:10px"><span class="tlbl">총 조회</span> <b>${n(s.visits_total)}</b></span>`;};
+// counterapi 폴백: KST 일자 버킷 + localStorage로 방문자 하루 1회 집계
+const CNT_NS='aboutcorelab-wiki';
+const kstDay=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Seoul'}).replace(/-/g,'');
+const cnt=(k,up)=>fetch(`https://api.counterapi.dev/v1/${CNT_NS}/${encodeURIComponent(k)}/`+(up?'up':''),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>j&&j.count);
+async function counterapiStats(){const day=kstDay();
+  const total=await cnt('views-total',true);
+  const vt=await cnt('views-'+day,true);
+  const flag='wiki_seen_'+day;let seen=false;
+  try{seen=!!localStorage.getItem(flag);}catch(e){}
+  let vis;
+  if(!seen){try{localStorage.setItem(flag,'1');}catch(e){}vis=await cnt('visitors-'+day,true);}
+  else{vis=await cnt('visitors-'+day,false);}
+  return {visitors_today:vis,visits_today:vt,visits_total:total};}
+// window.WIKI_STATS override → count.php → counterapi 폴백
+if(window.WIKI_STATS){render(window.WIKI_STATS);return;}
+fetch('count.php',{cache:'no-store'})
+  .then(r=>{const ct=r.headers.get('content-type')||'';if(r.ok&&ct.includes('json'))return r.json();throw new Error('no-php');})
+  .then(s=>{if(s&&!s.error)render(s);else throw new Error('bad');})
+  .catch(()=>{counterapiStats().then(render).catch(()=>{});});})();
 let _latest='';Object.values(D).forEach(p=>{if(p.updated&&p.updated>_latest)_latest=p.updated});
 if(_latest)document.getElementById('sbUpd').textContent=`· ${_latest}`;
 let searchT;
@@ -875,7 +899,9 @@ function renderHomeDashboard(){
   let latest='';
   Object.values(D).forEach(p=>{if(p.updated&&p.updated>latest)latest=p.updated});
 
-  const hero = `<div class="home-hero"><h1>aboutcorelab wiki</h1><p class="lead">AI에 대한 모든 지식 베이스.</p><div class="home-stats">${stats.join('')}</div></div>`;
+  const buildTs = (typeof BUILD_TIMESTAMP !== 'undefined') ? BUILD_TIMESTAMP : '';
+  const buildLine = buildTs ? `<div class="home-build">마지막 빌드: ${buildTs}</div>` : '';
+  const hero = `<div class="home-hero"><h1>aboutcorelab wiki</h1><p class="lead">AI에 대한 모든 지식 베이스.</p><div class="home-stats">${stats.join('')}</div>${buildLine}</div>`;
 
   // Hot concepts (manually curated)
   const w_hot = `<div class="home-widget home-w-hot"><div class="home-widget-head"><h3>🔥 요즘 꼭 알아야 할 AI 개념</h3><span class="more" style="cursor:default">${latest||''}</span></div><ul>${HOT_CONCEPTS.map(c=>{
@@ -883,6 +909,21 @@ function renderHomeDashboard(){
     const tagBadge = `<span class="hot-tag ${c.tag}">${c.tag}</span>`;
     return `<li><a onclick="go('${c.id}')">${escapeHtml(p.title)}${tagBadge}</a><div class="w-ol">${escapeHtml(c.note)}</div></li>`;
   }).join('')}</ul></div>`;
+
+  // 신규 개념 — concepts added in the rolling N-day window (auto from build.py)
+  let w_new = '';
+  if(typeof HOME_NEW_CONCEPTS!=='undefined' && HOME_NEW_CONCEPTS.length){
+    const winDays = (typeof HOME_NEW_CONCEPT_WINDOW!=='undefined' && HOME_NEW_CONCEPT_WINDOW.days)||14;
+    const items = HOME_NEW_CONCEPTS.map(e=>{
+      const p=D[e.id]; if(!p)return '';
+      const dateTag = e.created ? `<span class="w-meta">${e.created.slice(5)}</span>` : '';
+      const ol = p.one_liner ? `<div class="w-ol">${escapeHtml(p.one_liner)}</div>` : '';
+      return `<li><a onclick="go('${e.id}')">${escapeHtml(trunc(p.title,48))}</a>${dateTag}</li>${ol?`<li style="padding-top:0;border:none">${ol}</li>`:''}`;
+    }).join('');
+    w_new = `<div class="home-widget home-w-new"><div class="home-widget-head"><h3>✨ 신규 개념</h3><span class="more" style="cursor:default">최근 ${winDays}일 · ${HOME_NEW_CONCEPTS.length}건</span></div><ul>${items}</ul></div>`;
+  } else {
+    w_new = `<div class="home-widget home-w-new"><div class="home-widget-head"><h3>✨ 신규 개념</h3><span class="more" style="cursor:default">최근 추가 없음</span></div><ul><li class="w-ol">최근 신규 개념이 없습니다.</li></ul></div>`;
+  }
 
   const w_recent = _homeWidget('🆕 최근 수집 소스', 'home-w-recent',
     (typeof HOME_RECENT_SOURCES!=='undefined'?HOME_RECENT_SOURCES:[]).slice(0,8).map(pid=>_homeSourceItem(pid)),
@@ -921,7 +962,7 @@ function renderHomeDashboard(){
   // Graph shortcut + extras
   const w_extra = `<div class="home-widget home-w-extra"><div class="home-widget-head"><h3>🔍 탐색 도구</h3></div><ul><li><a onclick="toggleGraph()">🕸 지식 그래프 뷰</a></li><li><a onclick="navigate('#tags')">🏷 태그 인덱스</a></li>${D['overview']?`<li><a onclick="go('overview')">📖 전체 개요 문서 (서술형)</a></li>`:''}</ul></div>`;
 
-  const grid = `<div class="home-grid">${w_hot}${w_recent}${w_a}${w_ents}${w_con}${w_tags}${w_extra}</div>`;
+  const grid = `<div class="home-grid">${w_hot}${w_new}${w_recent}${w_a}${w_ents}${w_con}${w_tags}${w_extra}</div>`;
 
   pg.innerHTML = `<div class="pg-layout no-rail"><div class="pg-body">${hero}${grid}</div></div>`;
 }
